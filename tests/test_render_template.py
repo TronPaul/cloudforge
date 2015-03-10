@@ -1,6 +1,6 @@
 import unittest
-from jinja2 import Environment, DictLoader
-from cloudplate.render import render_template, NoCloudletsError, MalformedTemplateError
+from jinja2 import DictLoader
+from cloudplate.render import Renderer, NoCloudletsError, MalformedTemplateError
 
 cloudlets = {'plain.yaml': ('Type: AWS::IAM::InstanceProfile\n'
                             'Properties:\n'
@@ -24,7 +24,7 @@ cloudlets = {'plain.yaml': ('Type: AWS::IAM::InstanceProfile\n'
 
 
 class RenderTemplateTest(unittest.TestCase):
-    jenv = Environment(loader=DictLoader(cloudlets))
+    renderer = Renderer(DictLoader(cloudlets))
 
     def test_render_simple_template(self):
         template_def = ('simple', {'cloudlets': {'plain': None}})
@@ -34,19 +34,19 @@ class RenderTemplateTest(unittest.TestCase):
                                         'Properties': {
                                             'Path': '/',
                                             'Roles': ['TheRole']
-                                        }}}}, render_template(self.jenv, template_def))
+                                        }}}}, self.renderer.render_template(template_def))
 
     def test_render_template_without_cloudlets_fails(self):
         template_def = ('simple', {})
-        self.assertRaises(NoCloudletsError, render_template, self.jenv, template_def)
+        self.assertRaises(NoCloudletsError, self.renderer.render_template, template_def)
 
     def test_render_template_with_empty_cloudlets_fails(self):
         template_def = ('simple', {'cloudlets': {}})
-        self.assertRaises(NoCloudletsError, render_template, self.jenv, template_def)
+        self.assertRaises(NoCloudletsError, self.renderer.render_template, template_def)
 
     def test_render_template_with_bad_cloudlets_fails(self):
         template_def = ('simple', {'cloudlets': True})
-        self.assertRaises(MalformedTemplateError, render_template, self.jenv, template_def)
+        self.assertRaises(MalformedTemplateError, self.renderer.render_template, template_def)
 
     def test_render_template_with_global_params(self):
         template_def = ('vared', {'variables': {'role': 'DatRole'},
@@ -57,7 +57,7 @@ class RenderTemplateTest(unittest.TestCase):
                                         'Properties': {
                                             'Path': '/',
                                             'Roles': ['DatRole']
-                                        }}}}, render_template(self.jenv, template_def))
+                                        }}}}, self.renderer.render_template(template_def))
 
     def test_render_template_with_global_params_is_overridden_by_local_params(self):
         template_def = ('paramed', {'variables': {'role': 'DatRole'},
@@ -68,7 +68,7 @@ class RenderTemplateTest(unittest.TestCase):
                                         'Properties': {
                                             'Path': '/',
                                             'Roles': ['MuhRole']
-                                        }}}}, render_template(self.jenv, template_def))
+                                        }}}}, self.renderer.render_template(template_def))
 
     def test_render_template_with_two_cloudlets(self):
         template_def = ('vared', {'cloudlets': {'vared': {'variables': {'role': 'MuhRole'}},
@@ -84,7 +84,7 @@ class RenderTemplateTest(unittest.TestCase):
                                         'Properties': {
                                             'Path': '/',
                                             'Roles': ['MuhRole']
-                                        }}}}, render_template(self.jenv, template_def))
+                                        }}}}, self.renderer.render_template(template_def))
 
     def test_render_template_with_resource_param(self):
         template_def = ('paramed_typed', {
@@ -118,7 +118,7 @@ class RenderTemplateTest(unittest.TestCase):
                                       ]
                                   }
                               }
-                          }}, render_template(self.jenv, template_def))
+                          }}, self.renderer.render_template(template_def))
 
 
 if __name__ == '__main__':

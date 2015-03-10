@@ -1,6 +1,6 @@
 import unittest
-from jinja2 import Environment, DictLoader
-from cloudplate.render import render_cloudlet
+from jinja2 import DictLoader
+from cloudplate.render import Renderer
 
 
 cloudlets = {'plain.yaml': ('Type: AWS::IAM::InstanceProfile\n'
@@ -16,7 +16,7 @@ cloudlets = {'plain.yaml': ('Type: AWS::IAM::InstanceProfile\n'
 
 
 class RenderCloudletTest(unittest.TestCase):
-    jenv = Environment(loader=DictLoader(cloudlets))
+    renderer = Renderer(DictLoader(cloudlets))
 
     def test_render_plain(self):
         cloudlet_def = ('plain', None)
@@ -24,7 +24,7 @@ class RenderCloudletTest(unittest.TestCase):
                                     'Properties': {
                                         'Path': '/',
                                         'Roles': ['TheRole']
-                                    }}}, render_cloudlet(self.jenv, cloudlet_def))
+                                    }}}, self.renderer.render_cloudlet(cloudlet_def))
 
     def test_render_named(self):
         cloudlet_def = ('plain', {'name': 'MyName'})
@@ -32,7 +32,7 @@ class RenderCloudletTest(unittest.TestCase):
                                      'Properties': {
                                          'Path': '/',
                                          'Roles': ['TheRole']
-                                     }}}, render_cloudlet(self.jenv, cloudlet_def))
+                                     }}}, self.renderer.render_cloudlet(cloudlet_def))
 
     def test_render_template(self):
         cloudlet_def = ('abjqrml', {'template': 'plain.yaml'})
@@ -40,7 +40,7 @@ class RenderCloudletTest(unittest.TestCase):
                                       'Properties': {
                                           'Path': '/',
                                           'Roles': ['TheRole']
-                                      }}}, render_cloudlet(self.jenv, cloudlet_def))
+                                      }}}, self.renderer.render_cloudlet(cloudlet_def))
 
     def test_render_params(self):
         cloudlet_def = ('vared', {'variables': {'role': 'DatRole'}})
@@ -48,7 +48,7 @@ class RenderCloudletTest(unittest.TestCase):
                                     'Properties': {
                                         'Path': '/',
                                         'Roles': ['DatRole']
-                                    }}}, render_cloudlet(self.jenv, cloudlet_def))
+                                    }}}, self.renderer.render_cloudlet(cloudlet_def))
 
 
 if __name__ == '__main__':
