@@ -1,5 +1,7 @@
 import yaml
 
+TEMPLATE_BASE = {'AWSTemplateFormatVersion': '2010-09-09'}
+
 
 def render_cloudlet(jenv, cloudlet_def):
     if cloudlet_def[1]:
@@ -16,9 +18,9 @@ def render_cloudlet(jenv, cloudlet_def):
 
 def render_template(jenv, template_def):
     cloudlet_defs = template_def[1]['cloudlets'].items()
-    template_base = {'AWSTemplateFormatVersion': '2010-09-09'}
+    template = TEMPLATE_BASE.copy()
     resources = {}
     for cloudlet_def in cloudlet_defs:
         resources.update(render_cloudlet(jenv, cloudlet_def))
-    template_base['Resources'] = resources
-    return template_base
+    template['Resources'] = resources
+    return template
