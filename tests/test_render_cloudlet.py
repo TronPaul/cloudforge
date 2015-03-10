@@ -7,7 +7,12 @@ cloudlets = {'plain.yaml': ('Type: AWS::IAM::InstanceProfile\n'
                             'Properties:\n'
                             '  Path: /\n'
                             '  Roles:\n'
-                            '  - TheRole\n')}
+                            '  - TheRole\n'),
+             'paramed.yaml': ('Type: AWS::IAM::InstanceProfile\n'
+                              'Properties:\n'
+                              '  Path: /\n'
+                              '  Roles:\n'
+                              '  - {{role}}\n')}
 
 
 class RenderCloudletTest(unittest.TestCase):
@@ -35,6 +40,14 @@ class RenderCloudletTest(unittest.TestCase):
                                       'Properties': {
                                           'Path': '/',
                                           'Roles': ['TheRole']
+                                      }}}, render_cloudlet(self.jenv, cloudlet_def))
+
+    def test_render_params(self):
+        cloudlet_def = ('paramed', {'parameters': {'role': 'DatRole'}})
+        self.assertEqual({'paramed': {'Type': 'AWS::IAM::InstanceProfile',
+                                      'Properties': {
+                                          'Path': '/',
+                                          'Roles': ['DatRole']
                                       }}}, render_cloudlet(self.jenv, cloudlet_def))
 
 
