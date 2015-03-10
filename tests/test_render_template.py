@@ -7,11 +7,11 @@ cloudlets = {'plain.yaml': ('Type: AWS::IAM::InstanceProfile\n'
                             '  Path: /\n'
                             '  Roles:\n'
                             '  - TheRole\n'),
-             'paramed.yaml': ('Type: AWS::IAM::InstanceProfile\n'
-                              'Properties:\n'
-                              '  Path: /\n'
-                              '  Roles:\n'
-                              '  - {{role}}\n'),
+             'vared.yaml': ('Type: AWS::IAM::InstanceProfile\n'
+                            'Properties:\n'
+                            '  Path: /\n'
+                            '  Roles:\n'
+                            '  - {{role}}\n'),
              'typed.yaml': ('Type: AWS::EC2::SecurityGroup\n'
                             'Properties:\n'
                             '  VpcId:\n'
@@ -49,30 +49,30 @@ class RenderTemplateTest(unittest.TestCase):
         self.assertRaises(MalformedTemplateError, render_template, self.jenv, template_def)
 
     def test_render_template_with_global_params(self):
-        template_def = ('paramed', {'parameters': {'role': 'DatRole'},
-                                    'cloudlets': {'paramed': None}})
+        template_def = ('vared', {'variables': {'role': 'DatRole'},
+                                  'cloudlets': {'vared': None}})
         self.assertEqual({'AWSTemplateFormatVersion': '2010-09-09',
                           'Resources': {
-                              'paramed': {'Type': 'AWS::IAM::InstanceProfile',
-                                          'Properties': {
-                                              'Path': '/',
-                                              'Roles': ['DatRole']
-                                          }}}}, render_template(self.jenv, template_def))
+                              'vared': {'Type': 'AWS::IAM::InstanceProfile',
+                                        'Properties': {
+                                            'Path': '/',
+                                            'Roles': ['DatRole']
+                                        }}}}, render_template(self.jenv, template_def))
 
     def test_render_template_with_global_params_is_overridden_by_local_params(self):
-        template_def = ('paramed', {'parameters': {'role': 'DatRole'},
-                                    'cloudlets': {'paramed': {'parameters': {'role': 'MuhRole'}}}})
+        template_def = ('paramed', {'variables': {'role': 'DatRole'},
+                                    'cloudlets': {'vared': {'variables': {'role': 'MuhRole'}}}})
         self.assertEqual({'AWSTemplateFormatVersion': '2010-09-09',
                           'Resources': {
-                              'paramed': {'Type': 'AWS::IAM::InstanceProfile',
-                                          'Properties': {
-                                              'Path': '/',
-                                              'Roles': ['MuhRole']
-                                          }}}}, render_template(self.jenv, template_def))
+                              'vared': {'Type': 'AWS::IAM::InstanceProfile',
+                                        'Properties': {
+                                            'Path': '/',
+                                            'Roles': ['MuhRole']
+                                        }}}}, render_template(self.jenv, template_def))
 
     def test_render_template_with_two_cloudlets(self):
-        template_def = ('paramed', {'cloudlets': {'paramed': {'parameters': {'role': 'MuhRole'}},
-                                                  'plain': None}})
+        template_def = ('vared', {'cloudlets': {'vared': {'variables': {'role': 'MuhRole'}},
+                                                'plain': None}})
         self.assertEqual({'AWSTemplateFormatVersion': '2010-09-09',
                           'Resources': {
                               'plain': {'Type': 'AWS::IAM::InstanceProfile',
@@ -80,11 +80,11 @@ class RenderTemplateTest(unittest.TestCase):
                                             'Path': '/',
                                             'Roles': ['TheRole']
                                         }},
-                              'paramed': {'Type': 'AWS::IAM::InstanceProfile',
-                                          'Properties': {
-                                              'Path': '/',
-                                              'Roles': ['MuhRole']
-                                          }}}}, render_template(self.jenv, template_def))
+                              'vared': {'Type': 'AWS::IAM::InstanceProfile',
+                                        'Properties': {
+                                            'Path': '/',
+                                            'Roles': ['MuhRole']
+                                        }}}}, render_template(self.jenv, template_def))
 
     def test_render_template_with_resource_param(self):
         template_def = ('paramed_typed', {
@@ -113,7 +113,8 @@ class RenderTemplateTest(unittest.TestCase):
                                   'Properties': {
                                       'VpcId': {'Ref': 'VPC'},
                                       'SecurityGroupEgress': [
-                                          {'IpProtocol': '-1', 'FromPort': '0', 'ToPort': '65535', 'CidrIp': '0.0.0.0/0'}
+                                          {'IpProtocol': '-1', 'FromPort': '0', 'ToPort': '65535',
+                                           'CidrIp': '0.0.0.0/0'}
                                       ]
                                   }
                               }

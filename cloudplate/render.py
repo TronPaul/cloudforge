@@ -3,17 +3,17 @@ import yaml
 TEMPLATE_BASE = {'AWSTemplateFormatVersion': '2010-09-09'}
 
 
-def render_cloudlet(jenv, cloudlet_def, global_parameters=None):
-    parameters = global_parameters or {}
+def render_cloudlet(jenv, cloudlet_def, global_variables=None):
+    variables = global_variables or {}
     if cloudlet_def[1]:
         name = cloudlet_def[1].get('name', cloudlet_def[0])
         template_path = cloudlet_def[1].get('template', cloudlet_def[0] + '.yaml')
-        parameters.update(cloudlet_def[1].get('parameters', {}))
+        variables.update(cloudlet_def[1].get('variables', {}))
     else:
         name = cloudlet_def[0]
         template_path = cloudlet_def[0] + '.yaml'
     template = jenv.get_template(template_path)
-    return {name: yaml.safe_load(template.render(**parameters))}
+    return {name: yaml.safe_load(template.render(**variables))}
 
 
 def render_template(jenv, template_def):
@@ -26,11 +26,11 @@ def render_template(jenv, template_def):
     if not cloudlets:
         raise NoCloudletsError(template_def)
     cloudlet_defs = cloudlets.items()
-    parameters = template_options.get('parameters', {})
+    variables = template_options.get('variables', {})
     template = TEMPLATE_BASE.copy()
     resources = {}
     for cloudlet_def in cloudlet_defs:
-        resources.update(render_cloudlet(jenv, cloudlet_def, parameters))
+        resources.update(render_cloudlet(jenv, cloudlet_def, variables))
     template['Resources'] = resources
     return template
 
