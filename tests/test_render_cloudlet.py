@@ -24,10 +24,18 @@ class RenderCloudletTest(unittest.TestCase):
     def test_render_named(self):
         cloudlet_def = ('plain', {'name': 'MyName'})
         self.assertEqual({'MyName': {'Type': 'AWS::IAM::InstanceProfile',
-                                    'Properties': {
-                                        'Path': '/',
-                                        'Roles': ['TheRole']
-                                    }}}, render_cloudlet(self.jenv, cloudlet_def))
+                                     'Properties': {
+                                         'Path': '/',
+                                         'Roles': ['TheRole']
+                                     }}}, render_cloudlet(self.jenv, cloudlet_def))
+
+    def test_render_template(self):
+        cloudlet_def = ('abjqrml', {'template': 'plain.yaml'})
+        self.assertEqual({'abjqrml': {'Type': 'AWS::IAM::InstanceProfile',
+                                      'Properties': {
+                                          'Path': '/',
+                                          'Roles': ['TheRole']
+                                      }}}, render_cloudlet(self.jenv, cloudlet_def))
 
 
 if __name__ == '__main__':
