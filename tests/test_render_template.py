@@ -61,6 +61,22 @@ class RenderTemplateTest(unittest.TestCase):
                                               'Roles': ['MuhRole']
                                           }}}}, render_template(self.jenv, template_def))
 
+    def test_render_template_with_two_cloudlets(self):
+        template_def = ('paramed', {'cloudlets': {'paramed': {'parameters': {'role': 'MuhRole'}},
+                                                  'plain': None}})
+        self.assertEqual({'AWSTemplateFormatVersion': '2010-09-09',
+                          'Resources': {
+                              'plain': {'Type': 'AWS::IAM::InstanceProfile',
+                                        'Properties': {
+                                            'Path': '/',
+                                            'Roles': ['TheRole']
+                                        }},
+                              'paramed': {'Type': 'AWS::IAM::InstanceProfile',
+                                          'Properties': {
+                                              'Path': '/',
+                                              'Roles': ['MuhRole']
+                                          }}}}, render_template(self.jenv, template_def))
+
 
 if __name__ == '__main__':
     unittest.main()
