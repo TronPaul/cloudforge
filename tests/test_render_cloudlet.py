@@ -1,5 +1,5 @@
 import unittest
-from jinja import Environment, DictLoader
+from jinja2 import Environment, DictLoader
 from cloudplate.render import render_cloudlet
 
 
