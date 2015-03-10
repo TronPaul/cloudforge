@@ -6,7 +6,7 @@ from cloudplate.cli import dump
 
 class DumpTest(unittest.TestCase):
     def test_dump_template(self):
-        args = Namespace(template='plain')
+        args = Namespace(template='plain', cloud_definition='test.yaml')
         self.assertEqual(json.dumps({'AWSTemplateFormatVersion': '2010-09-09',
                                      'Resources': {
                                          'plain': {'Type': 'AWS::IAM::InstanceProfile',
