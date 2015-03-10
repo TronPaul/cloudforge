@@ -32,6 +32,13 @@ def render_template(jenv, template_def):
     for cloudlet_def in cloudlet_defs:
         resources.update(render_cloudlet(jenv, cloudlet_def, variables))
     template['Resources'] = resources
+    parameter_defs = template_options.get('parameters', {}).items()
+    if parameter_defs:
+        parameters = {}
+        for name, parameter_def in parameter_defs:
+            type_ = parameter_def['type'].capitalize()
+            parameters.update({name: {'Type': type_}})
+        template['Parameters'] = parameters
     return template
 
 
