@@ -34,24 +34,29 @@ def load_definition(path):
         return yaml.safe_load(f)
 
 
-def cf_template(yamlfile, definition_name, template_name):
+def cp_definition(yamlfile, definition_name):
     definitions = load_definition(yamlfile)
     if definition_name not in definitions:
         raise DefinitionLookupError(definition_name, yamlfile)
-    definition = definitions[definition_name]
+    return definitions[definition_name]
+
+
+def cf_template(definition_name, definition, template_name):
     if template_name not in definition['templates']:
         raise TemplateLookupError(template_name, definition_name)
-    template_def = definitions[definition_name]['templates'][template_name]
+    template_def = definition['templates'][template_name]
     r = make_renderer(os.getcwd())
     return json.dumps(r.render_template((template_name, template_def)))
 
 
 def dump(args):
-    return cf_template(args.yamlfile, args.definition_name, args.template_name)
+    definition = cp_definition(args.yamlfile, args.definition_name)
+    return cf_template(args.definition_name, definition, args.template_name)
 
 
 def create(args):
-    template = cf_template(args.yamlfile, args.definition_name, args.template_name)
+    definition = cp_definition(args.yamlfile, args.definition_name)
+    template = cf_template(args.definition_name, definition, args.template_name)
     forge_stack(template)
 
 
