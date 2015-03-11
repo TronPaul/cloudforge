@@ -24,9 +24,13 @@ def dump(args):
 
 def cloudplate():
     parser = argparse.ArgumentParser()
-    dump_p = parser.add_subparsers('dump', func=dump)
-    dump_p.add_argument('yamlfile', description='The file to read the Cloudplate definitions from', required=True)
-    dump_p.add_argument('definition_name', description='The definition name', required=True)
-    dump_p.add_argument('template_name', description='The template name')
+    subparsers = parser.add_subparsers()
 
-    parser.parse_args()
+    dump_p = subparsers.add_parser('dump')
+    dump_p.set_defaults(func=dump)
+    dump_p.add_argument('yamlfile', help='The file to read the Cloudplate definitions from')
+    dump_p.add_argument('definition_name', help='The definition name')
+    dump_p.add_argument('--template_name', help='The template name')
+
+    args = parser.parse_args()
+    args.func(args)
