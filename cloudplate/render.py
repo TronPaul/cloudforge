@@ -3,6 +3,7 @@ from jinja2 import Environment, FileSystemLoader
 
 TEMPLATE_BASE = {'AWSTemplateFormatVersion': '2010-09-09'}
 
+
 class Renderer(object):
     def __init__(self, loader):
         self.env = Environment(loader=loader)
@@ -18,7 +19,6 @@ class Renderer(object):
             template_path = cloudlet_def[0] + '.yaml'
         template = self.env.get_template(template_path)
         return {name: yaml.safe_load(template.render(**variables))}
-
 
     def render_template(self, template_def):
         name, template_options = template_def
