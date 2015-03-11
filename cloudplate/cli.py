@@ -4,6 +4,7 @@ import json
 import argparse
 from jinja2 import FileSystemLoader
 from cloudplate.render import Renderer
+from cloudplate.cloudforge import forge_stack
 
 
 class DefinitionLookupError(LookupError):
@@ -33,16 +34,25 @@ def load_definition(path):
         return yaml.safe_load(f)
 
 
-def dump(args):
-    definitions = load_definition(args.yamlfile)
-    if args.definition_name not in definitions:
-        raise DefinitionLookupError(args.definition_name, args.yamlfile)
-    definition = definitions[args.definition_name]
-    if args.template_name not in definition['templates']:
-        raise TemplateLookupError(args.template_name, args.definition_name)
-    template = definitions[args.definition_name]['templates'][args.template_name]
+def cf_template(yamlfile, definition_name, template_name):
+    definitions = load_definition(yamlfile)
+    if definition_name not in definitions:
+        raise DefinitionLookupError(definition_name, yamlfile)
+    definition = definitions[definition_name]
+    if template_name not in definition['templates']:
+        raise TemplateLookupError(template_name, definition_name)
+    template_def = definitions[definition_name]['templates'][template_name]
     r = make_renderer(os.getcwd())
-    return json.dumps(r.render_template((args.template_name, template)))
+    return json.dumps(r.render_template((template_name, template_def)))
+
+
+def dump(args):
+    return cf_template(args.yamlfile, args.definition_name, args.template_name)
+
+
+def create(args):
+    template = cf_template(args.yamlfile, args.definition_name, args.template_name)
+    forge_stack(template)
 
 
 def cloudplate():
