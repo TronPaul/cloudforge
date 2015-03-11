@@ -26,7 +26,7 @@ class DumpTest(unittest.TestCase):
     def test_dump_template(self, mock_open, mock_renderer):
         mock_open.return_value.__enter__.return_value = StringIO(plain_template)
         mock_renderer.return_value = Renderer(DictLoader(cloudlets))
-        args = Namespace(name='plain', template='my_template', cloud_definition='test.yaml')
+        args = Namespace(definition_name='plain', template_name='my_template', yamlfile='test.yaml')
         self.assertEqual(json.dumps({'AWSTemplateFormatVersion': '2010-09-09',
                                      'Resources': {
                                          'plain': {'Type': 'AWS::IAM::InstanceProfile',
