@@ -1,5 +1,5 @@
 import unittest
-from cloudplate.cloudforge import order_templates
+from cloudplate.cloudforge import order_templates, MissingDependencyError
 
 
 class OrderTemplatesTest(unittest.TestCase):
@@ -9,6 +9,16 @@ class OrderTemplatesTest(unittest.TestCase):
         rv = order_templates(templates)
         self.assertEqual(2, len(rv))
         self.assertTrue(all([i in rv for i in templates.items()]))
+
+    def test_order_with_missing_dep_fails(self):
+        templates = {
+            'a': {
+                'requires': ['c'],
+                'cloudlets': {'fake': None}
+            },
+            'b': {'cloudlets': {'fake': None}}
+        }
+        self.assertRaises(MissingDependencyError, order_templates, templates)
 
 
 if __name__ == '__main__':
