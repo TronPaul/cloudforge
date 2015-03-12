@@ -5,6 +5,7 @@ import argparse
 from jinja2 import FileSystemLoader
 from cloudplate.render import Renderer
 from cloudplate.cloudforge import forge_stack
+from cloudplate.util import connect_to_cf
 
 
 class DefinitionLookupError(LookupError):
@@ -41,7 +42,7 @@ def cp_definition(yamlfile, definition_name):
     return definitions[definition_name]
 
 
-def cf_template(definition_name, definition, template_name):
+def cf_template_body(definition_name, definition, template_name):
     if template_name not in definition['templates']:
         raise TemplateLookupError(template_name, definition_name)
     template_def = definition['templates'][template_name]
@@ -51,13 +52,20 @@ def cf_template(definition_name, definition, template_name):
 
 def dump(args):
     definition = cp_definition(args.yamlfile, args.definition_name)
-    return cf_template(args.definition_name, definition, args.template_name)
+    return cf_template_body(args.definition_name, definition, args.template_name)
 
 
 def create(args):
     definition = cp_definition(args.yamlfile, args.definition_name)
-    template = cf_template(args.definition_name, definition, args.template_name)
-    forge_stack(template)
+    template_body = cf_template_body(args.definition_name, definition, args.template_name)
+    ctcf_opts = {}
+    role = definition.get('role')
+    if role:
+        ctcf_opts['role_arn'] = role.pop('role_arn')
+        ctcf_opts['role_session_name'] = role.pop('role_session_name')
+        ctcf_opts['role_opts'] = role
+    connection = connect_to_cf(definition['region'], **ctcf_opts)
+    forge_stack(connection, args.template_name, template_body)
 
 
 def cloudplate():
