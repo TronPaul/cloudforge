@@ -7,6 +7,7 @@ class OrderTemplatesTest(unittest.TestCase):
         def_ = {'cloudlets': {'fake': None}}
         templates = {'a': def_, 'b': def_}
         rv = order_templates(templates)
+        print rv
         self.assertEqual(2, len(rv))
         self.assertTrue(all([i in rv for i in templates.items()]))
 
@@ -19,6 +20,17 @@ class OrderTemplatesTest(unittest.TestCase):
             'b': {'cloudlets': {'fake': None}}
         }
         self.assertRaises(MissingDependencyError, order_templates, templates)
+
+    def test_order_with_simple_deps(self):
+        templates = {
+            'a': {
+                'requires': ['b'],
+                'cloudlets': {'fake': None}
+            },
+            'b': {'cloudlets': {'fake': None}}
+        }
+        self.assertEqual([('b', templates['b']), ('a', templates['a'])],
+                         order_templates(templates))
 
 
 if __name__ == '__main__':
