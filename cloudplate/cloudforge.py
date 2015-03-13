@@ -4,9 +4,6 @@ from jinja2 import FileSystemLoader
 from cloudplate.render import Renderer
 from cloudplate.util import connect_to_cf
 
-def has_deps(template_def):
-    return template_def[1].get('require', []) > 0
-
 
 def order_templates(templates):
     dep_graph = {}
