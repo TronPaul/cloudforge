@@ -1,10 +1,9 @@
+import argparse
 import os
 import yaml
-import json
-import argparse
 from jinja2 import FileSystemLoader
 from cloudplate.render import Renderer
-from cloudplate.cloudforge import forge_stack
+from cloudplate.cloudforge import Forge, make_template_body
 from cloudplate.util import connect_to_cf
 
 
@@ -42,17 +41,11 @@ def cp_definition(yamlfile, definition_name):
     return definitions[definition_name]
 
 
-def cf_template_body(definition_name, definition, template_name):
-    if template_name not in definition['templates']:
-        raise TemplateLookupError(template_name, definition_name)
-    template_def = definition['templates'][template_name]
-    r = make_renderer(os.getcwd())
-    return json.dumps(r.render_template((template_name, template_def)))
-
-
 def dump(args):
     definition = cp_definition(args.yamlfile, args.definition_name)
-    return cf_template_body(args.definition_name, definition, args.template_name)
+    if args.template_name not in definition['templates']:
+        raise TemplateLookupError(args.template_name, args.definition_name)
+    return make_template_body(make_renderer(os.getcwd()), definition['templates'][args.template_name])
 
 
 def create(args):

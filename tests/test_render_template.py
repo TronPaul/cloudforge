@@ -27,7 +27,7 @@ class RenderTemplateTest(unittest.TestCase):
     renderer = Renderer(DictLoader(cloudlets))
 
     def test_render_simple_template(self):
-        template_def = ('simple', {'cloudlets': {'plain': None}})
+        template_def = {'cloudlets': {'plain': None}}
         self.assertEqual({'AWSTemplateFormatVersion': '2010-09-09',
                           'Resources': {
                               'plain': {'Type': 'AWS::IAM::InstanceProfile',
@@ -37,20 +37,20 @@ class RenderTemplateTest(unittest.TestCase):
                                         }}}}, self.renderer.render_template(template_def))
 
     def test_render_template_without_cloudlets_fails(self):
-        template_def = ('simple', {})
+        template_def = {}
         self.assertRaises(NoCloudletsError, self.renderer.render_template, template_def)
 
     def test_render_template_with_empty_cloudlets_fails(self):
-        template_def = ('simple', {'cloudlets': {}})
+        template_def = {'cloudlets': {}}
         self.assertRaises(NoCloudletsError, self.renderer.render_template, template_def)
 
     def test_render_template_with_bad_cloudlets_fails(self):
-        template_def = ('simple', {'cloudlets': True})
+        template_def = {'cloudlets': True}
         self.assertRaises(MalformedTemplateError, self.renderer.render_template, template_def)
 
     def test_render_template_with_global_params(self):
-        template_def = ('vared', {'variables': {'role': 'DatRole'},
-                                  'cloudlets': {'vared': None}})
+        template_def = {'variables': {'role': 'DatRole'},
+                        'cloudlets': {'vared': None}}
         self.assertEqual({'AWSTemplateFormatVersion': '2010-09-09',
                           'Resources': {
                               'vared': {'Type': 'AWS::IAM::InstanceProfile',
@@ -60,8 +60,8 @@ class RenderTemplateTest(unittest.TestCase):
                                         }}}}, self.renderer.render_template(template_def))
 
     def test_render_template_with_global_params_is_overridden_by_local_params(self):
-        template_def = ('paramed', {'variables': {'role': 'DatRole'},
-                                    'cloudlets': {'vared': {'variables': {'role': 'MuhRole'}}}})
+        template_def = {'variables': {'role': 'DatRole'},
+                        'cloudlets': {'vared': {'variables': {'role': 'MuhRole'}}}}
         self.assertEqual({'AWSTemplateFormatVersion': '2010-09-09',
                           'Resources': {
                               'vared': {'Type': 'AWS::IAM::InstanceProfile',
@@ -71,8 +71,8 @@ class RenderTemplateTest(unittest.TestCase):
                                         }}}}, self.renderer.render_template(template_def))
 
     def test_render_template_with_two_cloudlets(self):
-        template_def = ('vared', {'cloudlets': {'vared': {'variables': {'role': 'MuhRole'}},
-                                                'plain': None}})
+        template_def = {'cloudlets': {'vared': {'variables': {'role': 'MuhRole'}},
+                                      'plain': None}}
         self.assertEqual({'AWSTemplateFormatVersion': '2010-09-09',
                           'Resources': {
                               'plain': {'Type': 'AWS::IAM::InstanceProfile',
@@ -87,7 +87,7 @@ class RenderTemplateTest(unittest.TestCase):
                                         }}}}, self.renderer.render_template(template_def))
 
     def test_render_template_with_resource_param(self):
-        template_def = ('paramed_typed', {
+        template_def = {
             'parameters': {
                 'VPC': {
                     'source': {
@@ -99,7 +99,8 @@ class RenderTemplateTest(unittest.TestCase):
             },
             'cloudlets': {
                 'typed': None
-            }})
+            }
+        }
         self.maxDiff = None
         self.assertEqual({'AWSTemplateFormatVersion': '2010-09-09',
                           'Parameters': {

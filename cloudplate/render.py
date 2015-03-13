@@ -21,22 +21,21 @@ class Renderer(object):
         return {name: yaml.safe_load(template.render(**variables))}
 
     def render_template(self, template_def):
-        name, template_options = template_def
-        if 'cloudlets' not in template_options:
+        if 'cloudlets' not in template_def:
             raise NoCloudletsError(template_def)
-        cloudlets = template_options['cloudlets']
+        cloudlets = template_def['cloudlets']
         if not isinstance(cloudlets, dict):
             raise MalformedTemplateError(template_def, "bad cloudlets definition")
         if not cloudlets:
             raise NoCloudletsError(template_def)
         cloudlet_defs = cloudlets.items()
-        variables = template_options.get('variables', {})
+        variables = template_def.get('variables', {})
         template = TEMPLATE_BASE.copy()
         resources = {}
         for cloudlet_def in cloudlet_defs:
             resources.update(self.render_cloudlet(cloudlet_def, variables))
         template['Resources'] = resources
-        parameter_defs = template_options.get('parameters', {}).items()
+        parameter_defs = template_def.get('parameters', {}).items()
         if parameter_defs:
             parameters = {}
             for name, parameter_def in parameter_defs:

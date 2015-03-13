@@ -1,4 +1,8 @@
-
+import os
+import json
+from jinja2 import FileSystemLoader
+from cloudplate.render import Renderer
+from cloudplate.util import connect_to_cf
 
 def has_deps(template_def):
     return template_def[1].get('require', []) > 0
@@ -38,12 +42,28 @@ def order_templates(templates):
     return sorted_templates
 
 
-def forge_definition(connection, name, definition):
-    templates = order_templates(definition['templates'])
+def make_template_body(renderer, template):
+    return json.dumps(renderer.render_template(template))
 
 
-def forge_stack(connection, name, template_body, parameters=None):
-    connection.create_stack(name, template_body=template_body, parameters=parameters)
+def build_parameters(connection, parameters):
+    pass
+
+
+class Forge(object):
+    def __init__(self, region, **connect_opts):
+        self.renderer = Renderer(FileSystemLoader(os.getcwd()))
+        self.connection = connect_to_cf(region, **connect_opts)
+
+    def forge_template(self, name, template):
+        parameters = build_parameters(self.connection, template['parameters'])
+        template_body = make_template_body(self.renderer, template)
+        self.connection.create_stack(name, template_body=template_body, parameters=parameters)
+
+    def forge_definition(self, name, definition):
+        templates = order_templates(definition['templates'])
+        for name, template in templates:
+            self.forge_template(name, template)
 
 
 class CircularDependencyError(Exception):
