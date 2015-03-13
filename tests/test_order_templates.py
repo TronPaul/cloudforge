@@ -45,6 +45,23 @@ class OrderTemplatesTest(unittest.TestCase):
         }
         self.assertRaises(CircularDependencyError, order_templates, templates)
 
+    def test_order_using_parameters(self):
+        templates = {
+            'a': {
+                'cloudlets': {'fake': None}
+            },
+            'b': {
+                'parameters': {
+                    'thing': {
+                        'source': 'a'
+                    }
+                },
+                'cloudlets': {'fake': None}
+            }
+        }
+        self.assertEqual([('a', templates['a']), ('b', templates['b'])],
+                         order_templates(templates))
+
 
 if __name__ == '__main__':
     unittest.main()

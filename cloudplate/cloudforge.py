@@ -9,12 +9,19 @@ def order_templates(templates):
     satisfied_deps = []
     sorted_templates = []
     for name, template in templates.items():
+        deps = set()
+        if 'parameters' in template:
+            for p_name, p_def in template['parameters'].items():
+                if 'source' in p_def:
+                    deps.add(p_def['source'])
         if 'requires' in template:
-            for dep in template['requires']:
+            deps.update(template['requires'])
+        if deps:
+            for dep in deps:
                 if dep not in templates:
                     raise MissingDependencyError(name, dep)
             else:
-                dep_graph[name] = list(template['requires'])
+                dep_graph[name] = list(deps)
         else:
             satisfied_deps.append(name)
     while len(satisfied_deps) > 0:
@@ -32,7 +39,7 @@ def order_templates(templates):
 
 
 def forge_definition(connection, name, definition):
-    templates = definition['templates']
+    templates = order_templates(definition['templates'])
 
 
 def forge_stack(connection, name, template_body, parameters=None):
