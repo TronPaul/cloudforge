@@ -42,8 +42,8 @@ def order_templates(templates):
     return sorted_templates
 
 
-def make_template_body(renderer, template):
-    return json.dumps(renderer.render_template(template))
+def make_template_body(renderer, template, parent_variables=None):
+    return json.dumps(renderer.render_template(template, parent_variables=None))
 
 
 def build_parameters(connection, parameters):
@@ -55,15 +55,16 @@ class Forge(object):
         self.renderer = Renderer(FileSystemLoader(os.getcwd()))
         self.connection = connect_to_cf(region, **connect_opts)
 
-    def forge_template(self, name, template):
+    def forge_template(self, name, template, parent_variables=None):
         parameters = build_parameters(self.connection, template['parameters'])
-        template_body = make_template_body(self.renderer, template)
+        template_body = make_template_body(self.renderer, template, parent_variables)
         self.connection.create_stack(name, template_body=template_body, parameters=parameters)
 
     def forge_definition(self, name, definition):
         templates = order_templates(definition['templates'])
+        variables = definition.get('variables')
         for name, template in templates:
-            self.forge_template(name, template)
+            self.forge_template(name, template, variables)
 
 
 class CircularDependencyError(Exception):
