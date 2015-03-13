@@ -8,8 +8,8 @@ class Renderer(object):
     def __init__(self, loader):
         self.env = Environment(loader=loader)
 
-    def render_cloudlet(self, cloudlet_def, global_variables=None):
-        variables = global_variables or {}
+    def render_cloudlet(self, cloudlet_def, parent_variables=None):
+        variables = parent_variables or {}
         if cloudlet_def[1]:
             name = cloudlet_def[1].get('name', cloudlet_def[0])
             template_path = cloudlet_def[1].get('template', cloudlet_def[0] + '.yaml')
@@ -20,7 +20,8 @@ class Renderer(object):
         template = self.env.get_template(template_path)
         return {name: yaml.safe_load(template.render(**variables))}
 
-    def render_template(self, template_def):
+    def render_template(self, template_def, parent_variables=None):
+        variables = parent_variables or {}
         if 'cloudlets' not in template_def:
             raise NoCloudletsError(template_def)
         cloudlets = template_def['cloudlets']
@@ -29,7 +30,7 @@ class Renderer(object):
         if not cloudlets:
             raise NoCloudletsError(template_def)
         cloudlet_defs = cloudlets.items()
-        variables = template_def.get('variables', {})
+        variables.update(template_def.get('variables', {}))
         template = TEMPLATE_BASE.copy()
         resources = {}
         for cloudlet_def in cloudlet_defs:
