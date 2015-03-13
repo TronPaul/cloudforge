@@ -53,7 +53,9 @@ class OrderTemplatesTest(unittest.TestCase):
             'b': {
                 'parameters': {
                     'thing': {
-                        'source': 'a'
+                        'source': {
+                            'template': 'a'
+                        }
                     }
                 },
                 'cloudlets': {'fake': None}

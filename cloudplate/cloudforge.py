@@ -14,7 +14,7 @@ def order_templates(templates):
         if 'parameters' in template:
             for p_name, p_def in template['parameters'].items():
                 if 'source' in p_def:
-                    deps.add(p_def['source'])
+                    deps.add(p_def['source']['template'])
         if 'requires' in template:
             deps.update(template['requires'])
         if deps:
@@ -44,7 +44,10 @@ def make_template_body(renderer, template, parent_variables=None):
 
 
 def build_parameters(connection, parameters):
-    pass
+    cf_params = []
+    for p_name, p_def in parameters.items():
+        if 'source' in p_def:
+            pass
 
 
 class Forge(object):
