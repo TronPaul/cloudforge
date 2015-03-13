@@ -39,7 +39,7 @@ def forge_stack(connection, name, template_body, parameters=None):
     connection.create_stack(name, template_body=template_body, parameters=parameters)
 
 
-class CircularDependencyError(object):
+class CircularDependencyError(Exception):
     def __init__(self, remaining_dependencies):
         self.remaining_dependencies = remaining_dependencies
 

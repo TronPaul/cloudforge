@@ -1,5 +1,5 @@
 import unittest
-from cloudplate.cloudforge import order_templates, MissingDependencyError
+from cloudplate.cloudforge import order_templates, MissingDependencyError, CircularDependencyError
 
 
 class OrderTemplatesTest(unittest.TestCase):
@@ -31,6 +31,19 @@ class OrderTemplatesTest(unittest.TestCase):
         }
         self.assertEqual([('b', templates['b']), ('a', templates['a'])],
                          order_templates(templates))
+
+    def test_order_with_circular_deps(self):
+        templates = {
+            'a': {
+                'requires': ['b'],
+                'cloudlets': {'fake': None}
+            },
+            'b': {
+                'requires': ['a'],
+                'cloudlets': {'fake': None}
+            }
+        }
+        self.assertRaises(CircularDependencyError, order_templates, templates)
 
 
 if __name__ == '__main__':
