@@ -8,5 +8,6 @@ setup(
     license='Apache-2.0',
     author='Mark McGuire',
     author_email='mark.b.mcg@gmail.com',
-    description=''
+    description='',
+    requires=['boto', 'jinja2']
 )
