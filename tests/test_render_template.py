@@ -91,7 +91,7 @@ class RenderTemplateTest(unittest.TestCase):
             'parameters': {
                 'VPC': {
                     'source': {
-                        'template': 'vpc',
+                        'stack': 'vpc',
                         'type': 'resource'
                     },
                     'type': 'string',

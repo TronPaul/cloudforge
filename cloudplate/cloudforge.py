@@ -60,9 +60,9 @@ def get_cf_value(connection, stack_name, value_name, value_type):
 def build_parameters(connection, parameters):
     cf_params = []
     for p_name, p_def in parameters.items():
-        if 'source' in p_def:
+        if isinstance(p_def, dict) and 'source' in p_def:
             remote_param_name = p_def['source'].get('name', p_name)
-            value = get_cf_value(connection, p_def['source']['template'], remote_param_name, p_def['source']['type'])
+            value = get_cf_value(connection, p_def['source']['stack'], remote_param_name, p_def['source']['type'])
             cf_params.append((p_name, value))
         else:
             cf_params.append((p_name, p_def))
