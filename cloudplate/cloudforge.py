@@ -43,25 +43,22 @@ def make_template_body(renderer, template, parent_variables=None):
     return json.dumps(renderer.render_template(template, parent_variables=None))
 
 
-class CloudformationValueNotFound(LookupError):
-    def __init__(self, stack_name, param_name, type_):
-        self.stack_name = stack_name
-        self.param_name = param_name
-        self.type_ = type_
-
-
-def get_cf_value(connection, stack_name, param_name, cf_type):
-    if 'resource' == cf_type:
-        rv = connection.describe_stack_resource(stack_name, param_name)
-        if rv.key == param_name:
-            return rv.value
+def get_cf_value(connection, stack_name, value_name, value_type):
+    if 'resource' == value_type:
+        rv = connection.describe_stack_resource(stack_name, value_name)
+        return rv['DescribeStackResourceResponse']['DescribeStackResourceResult']['StackResourceDetail'][
+            'PhysicalResourceId']
     else:
         stack = connection.describe_stacks(stack_name)[0]
-        if 'output' == cf_type:
-            return [o.value for o in stack.outputs if o.key == param_name][0]
-        elif 'parameter' == cf_type:
-            return [p.value for p in stack.parameters if p.key == param_name][0]
-    raise CloudformationValueNotFound(stack_name, param_name, cf_type)
+        if 'output' == value_type:
+            vals = [o.value for o in stack.outputs if o.key == value_name]
+        elif 'parameter' == value_type:
+            vals = [p.value for p in stack.parameters if p.key == value_name]
+        else:
+            raise BadCloudformationValueType(value_type)
+        if vals:
+            return vals[0]
+    raise CloudformationValueNotFound(stack_name, value_name, value_type)
 
 
 def build_parameters(connection, parameters):
@@ -91,6 +88,18 @@ class Forge(object):
         variables = definition.get('variables')
         for name, template in templates:
             self.forge_template(name, template, variables)
+
+
+class CloudformationValueNotFound(LookupError):
+    def __init__(self, stack_name, param_name, type_):
+        self.stack_name = stack_name
+        self.param_name = param_name
+        self.type_ = type_
+
+
+class BadCloudformationValueType(ValueError):
+    def __init__(self, value_type):
+        self.value_type = value_type
 
 
 class CircularDependencyError(Exception):
