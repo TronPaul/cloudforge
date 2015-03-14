@@ -29,27 +29,27 @@ def make_renderer(path):
     return Renderer(FileSystemLoader(path))
 
 
-def load_definition(path):
+def read_yamlfile(path):
     with open(path) as f:
         return yaml.safe_load(f)
 
 
-def cp_definition(yamlfile, definition_name):
-    definitions = load_definition(yamlfile)
+def load_definition(yamlfile, definition_name):
+    definitions = read_yamlfile(yamlfile)
     if definition_name not in definitions:
         raise DefinitionLookupError(definition_name, yamlfile)
     return definitions[definition_name]
 
 
 def dump(args):
-    definition = cp_definition(args.yamlfile, args.definition_name)
+    definition = load_definition(args.yamlfile, args.definition_name)
     if args.template_name not in definition['templates']:
         raise TemplateLookupError(args.template_name, args.definition_name)
     return make_template_body(make_renderer(os.getcwd()), definition['templates'][args.template_name])
 
 
 def create(args):
-    definition = cp_definition(args.yamlfile, args.definition_name)
+    definition = load_definition(args.yamlfile, args.definition_name)
     template_body = cf_template_body(args.definition_name, definition, args.template_name)
     ctcf_opts = {}
     role = definition.get('role')
