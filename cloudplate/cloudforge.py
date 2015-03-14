@@ -43,11 +43,37 @@ def make_template_body(renderer, template, parent_variables=None):
     return json.dumps(renderer.render_template(template, parent_variables=None))
 
 
+class CloudformationValueNotFound(LookupError):
+    def __init__(self, stack_name, param_name, type_):
+        self.stack_name = stack_name
+        self.param_name = param_name
+        self.type_ = type_
+
+
+def get_cf_value(connection, stack_name, param_name, cf_type):
+    if 'resource' == cf_type:
+        rv = connection.describe_stack_resource(stack_name, param_name)
+        if rv.key == param_name:
+            return rv.value
+    else:
+        stack = connection.describe_stacks(stack_name)[0]
+        if 'output' == cf_type:
+            return [o.value for o in stack.outputs if o.key == param_name][0]
+        elif 'parameter' == cf_type:
+            return [p.value for p in stack.parameters if p.key == param_name][0]
+    raise CloudformationValueNotFound(stack_name, param_name, cf_type)
+
+
 def build_parameters(connection, parameters):
     cf_params = []
     for p_name, p_def in parameters.items():
         if 'source' in p_def:
-            pass
+            remote_param_name = p_def['source'].get('name', p_name)
+            value = get_cf_value(connection, p_def['source']['template'], remote_param_name, p_def['source']['type'])
+            cf_params.append((p_name, value))
+        else:
+            cf_params.append((p_name, p_def))
+    return cf_params
 
 
 class Forge(object):
