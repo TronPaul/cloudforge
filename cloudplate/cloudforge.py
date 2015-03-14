@@ -36,7 +36,7 @@ def order_templates(templates):
 
 
 def make_template_body(renderer, template, parent_variables=None):
-    return json.dumps(renderer.render_template(template, parent_variables=None))
+    return json.dumps(renderer.render_template(template, parent_variables=parent_variables))
 
 
 def get_cf_value(connection, stack_name, value_name, value_type):
