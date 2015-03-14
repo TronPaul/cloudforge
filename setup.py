@@ -9,5 +9,5 @@ setup(
     author='Mark McGuire',
     author_email='mark.b.mcg@gmail.com',
     description='',
-    requires=['boto', 'jinja2']
+    requires=['boto', 'jinja2', 'PyYAML']
 )
