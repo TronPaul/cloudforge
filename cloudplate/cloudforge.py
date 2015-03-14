@@ -1,8 +1,4 @@
-import os
 import json
-from jinja2 import FileSystemLoader
-from cloudplate.render import Renderer
-from cloudplate.util import connect_to_cf
 
 
 def order_templates(templates):
@@ -74,9 +70,9 @@ def build_parameters(connection, parameters):
 
 
 class Forge(object):
-    def __init__(self, region, **connect_opts):
-        self.renderer = Renderer(FileSystemLoader(os.getcwd()))
-        self.connection = connect_to_cf(region, **connect_opts)
+    def __init__(self, connection, renderer):
+        self.renderer = renderer
+        self.connection = connection
 
     def forge_template(self, name, template, parent_variables=None):
         parameters = build_parameters(self.connection, template['parameters'])

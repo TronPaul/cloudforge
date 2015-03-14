@@ -20,3 +20,13 @@ def connect_to_cf(region, role_arn=None, role_sesion_name=None, role_opts=None):
         connect_opts['aws_secret_access_key'] = creds.secret_key
         connect_opts['security_token'] =  creds.sesion_token
     return cf.connect_to_region(region, **connect_opts)
+
+
+def connect(definition):
+    conn_opts = {}
+    role = definition.get('role')
+    if role:
+        conn_opts['role_arn'] = role.pop('role_arn')
+        conn_opts['role_session_name'] = role.pop('role_session_name')
+        conn_opts['role_opts'] = role
+    return connect_to_cf(definition['region'], **conn_opts)

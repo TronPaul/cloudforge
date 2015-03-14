@@ -4,7 +4,7 @@ import yaml
 from jinja2 import FileSystemLoader
 from cloudplate.render import Renderer
 from cloudplate.cloudforge import Forge, make_template_body
-from cloudplate.util import connect_to_cf
+from cloudplate.aws import connect
 
 
 class DefinitionLookupError(LookupError):
@@ -50,15 +50,9 @@ def dump(args):
 
 def create(args):
     definition = load_definition(args.yamlfile, args.definition_name)
-    template_body = cf_template_body(args.definition_name, definition, args.template_name)
-    ctcf_opts = {}
-    role = definition.get('role')
-    if role:
-        ctcf_opts['role_arn'] = role.pop('role_arn')
-        ctcf_opts['role_session_name'] = role.pop('role_session_name')
-        ctcf_opts['role_opts'] = role
-    connection = connect_to_cf(definition['region'], **ctcf_opts)
-    forge_stack(connection, args.template_name, template_body)
+    connection = connect(definition)
+    forge = Forge(connection, make_renderer(os.getcwd()))
+    forge.forge_definition(args.definition_name, definition)
 
 
 def cloudplate():
