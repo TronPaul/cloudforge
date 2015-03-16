@@ -1,6 +1,6 @@
 import unittest
 import mock
-from cloudplate.aws import dry_run_connection
+from cloudforge.aws import dry_run_connection
 
 
 class DryRunTest(unittest.TestCase):

@@ -1,9 +1,9 @@
 import argparse
 import os
 import yaml
-from cloudplate.render import make_renderer
-from cloudplate.cloudforge import Forge, make_template_body
-from cloudplate.aws import connect
+from cloudforge.render import make_renderer
+from cloudforge.forge import Forge, make_template_body
+from cloudforge.aws import connect
 
 
 class DefinitionLookupError(LookupError):

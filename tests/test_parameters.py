@@ -1,6 +1,6 @@
 import unittest
 import mock
-from cloudplate.cloudforge import build_parameters
+from cloudforge.forge import build_parameters
 from collections import namedtuple
 
 KeyValue = namedtuple('KeyValue', ['key', 'value'])

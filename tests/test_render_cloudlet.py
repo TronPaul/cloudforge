@@ -1,6 +1,6 @@
 import unittest
 from jinja2 import DictLoader
-from cloudplate.render import Renderer
+from cloudforge.render import Renderer
 
 
 cloudlets = {'plain.yaml': ('Type: AWS::IAM::InstanceProfile\n'

@@ -1,11 +1,11 @@
 import unittest
 import mock
 from boto.sts.credentials import Credentials, AssumedRole
-from cloudplate import aws
+from cloudforge import aws
 
 
 class MyTestCase(unittest.TestCase):
-    @mock.patch('cloudplate.aws.sts.connect_to_region')
+    @mock.patch('cloudforge.aws.sts.connect_to_region')
     def test_assume_role(self, ctr_mock):
         region = 'us-east-1'
         role_arn = 'fake-role-arn'
@@ -17,7 +17,7 @@ class MyTestCase(unittest.TestCase):
         ctr_mock.assert_called_once_with(region)
         conn.assume_role.assert_called_once_with(role_arn, session_name, **opts)
 
-    @mock.patch('cloudplate.aws.cf.connect_to_region')
+    @mock.patch('cloudforge.aws.cf.connect_to_region')
     def test_connect_wo_role(self, ctr_mock):
         region = 'us-east-1'
         defn = {
@@ -26,8 +26,8 @@ class MyTestCase(unittest.TestCase):
         aws.connect(defn)
         ctr_mock.assert_called_once_with(region)
 
-    @mock.patch('cloudplate.aws.cf.connect_to_region')
-    @mock.patch('cloudplate.aws.sts.connect_to_region')
+    @mock.patch('cloudforge.aws.cf.connect_to_region')
+    @mock.patch('cloudforge.aws.sts.connect_to_region')
     def test_connect_with_role(self, stsctr_mock, cfctr_mock):
         region = 'us-east-1'
         defn = {

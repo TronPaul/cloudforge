@@ -48,8 +48,8 @@ def dry_run_connection(definition):
     stsctr.return_value = LoggingMock(spec=sts.STSConnection)
     cfctr = LoggingMock()
     cfctr.return_value = LoggingMock(spec=cf.CloudFormationConnection)
-    with patch('cloudplate.aws.cf') as mock_cf:
-        with patch('cloudplate.aws.sts') as mock_sts:
+    with patch('cloudforge.aws.cf') as mock_cf:
+        with patch('cloudforge.aws.sts') as mock_sts:
             mock_sts.connect_to_region = stsctr
             mock_cf.connect_to_region = cfctr
             return connect(definition)

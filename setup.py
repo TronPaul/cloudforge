@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(
-    name='cloudplate',
+    name='cloudforge',
     version='0.0.1',
     packages=['cloudplate'],
     url='http://github.com/TronPaul/cloudplate',

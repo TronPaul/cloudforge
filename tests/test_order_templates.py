@@ -1,5 +1,5 @@
 import unittest
-from cloudplate.cloudforge import order_templates, MissingDependencyError, CircularDependencyError
+from cloudforge.forge import order_templates, MissingDependencyError, CircularDependencyError
 
 
 class OrderTemplatesTest(unittest.TestCase):
