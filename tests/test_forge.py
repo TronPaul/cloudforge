@@ -11,6 +11,11 @@ cloudlets = {'simple.yaml': ('Type: AWS::IAM::InstanceProfile\n'
                              '  Path: /\n'
                              '  Roles:\n'
                              '  - TheRole\n'),
+             'vared.yaml': ('Type: AWS::IAM::InstanceProfile\n'
+                            'Properties:\n'
+                            '  Path: /\n'
+                            '  Roles:\n'
+                            '  - {{role}}\n'),
              'typed.yaml': ('Type: AWS::EC2::SecurityGroup\n'
                             'Properties:\n'
                             '  VpcId:\n'
@@ -29,7 +34,7 @@ def make_renderer(d):
 # Not asserting on unicode input
 def byteify(input):
     if isinstance(input, dict):
-        return {byteify(key):byteify(value) for key,value in input.iteritems()}
+        return {byteify(key): byteify(value) for key, value in input.iteritems()}
     elif isinstance(input, list):
         return [byteify(element) for element in input]
     elif isinstance(input, unicode):
@@ -70,7 +75,28 @@ class ForgeTest(unittest.TestCase):
         self.assertFalse(conn.describe_stack_resources.called)
 
     def test_forge_template_with_variables(self):
-        pass
+        conn = mock.MagicMock(spec=CloudFormationConnection)
+        template_def = {'cloudlets': {'vared': {'variables': {'role': 'MuhRole'}},
+                                      'plain': None}}
+        body = {'AWSTemplateFormatVersion': '2010-09-09',
+                'Resources': {
+                    'vared': {'Type': 'AWS::IAM::InstanceProfile',
+                              'Properties': {
+                                  'Path': '/',
+                                  'Roles': ['DatRole']
+                              }}}}
+        r = make_renderer(cloudlets)
+        forge = Forge(conn, r)
+        forge.forge_template('vared',
+            {'variables': {'role': 'DatRole'},
+                        'cloudlets': {'vared': None}})
+        args, kwargs = conn.create_stack.call_args
+        self.assertEqual(1, conn.create_stack.call_count)
+        self.assertEqual(('vared',), args)
+        self.assertEqual(body, byteify(json.loads(kwargs['template_body'])))
+        self.assertTrue(kwargs['parameters'] is None)
+        self.assertFalse(conn.describe_stacks.called)
+        self.assertFalse(conn.describe_stack_resources.called)
 
     def test_forge_template_with_params(self):
         conn = mock.MagicMock(spec=CloudFormationConnection)
