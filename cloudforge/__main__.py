@@ -1,3 +1,3 @@
 import cloudforge.cli
 
-cloudforge.cli.cloudplate()
+cloudforge.cli.cloudforge()

@@ -50,7 +50,7 @@ def create(args):
     forge.forge_definition(args.definition_name, definition)
 
 
-def cloudplate():
+def cloudforge():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers()
 
