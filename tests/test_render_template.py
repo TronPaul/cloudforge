@@ -101,7 +101,6 @@ class RenderTemplateTest(unittest.TestCase):
                 'typed': None
             }
         }
-        self.maxDiff = None
         self.assertEqual({'AWSTemplateFormatVersion': '2010-09-09',
                           'Parameters': {
                               'VPC': {

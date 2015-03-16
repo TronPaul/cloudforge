@@ -75,7 +75,10 @@ class Forge(object):
         self.connection = connection
 
     def forge_template(self, name, template, parent_variables=None):
-        parameters = build_parameters(self.connection, template['parameters'])
+        if 'parameters' in template:
+            parameters = build_parameters(self.connection, template['parameters'])
+        else:
+            parameters = None
         template_body = make_template_body(self.renderer, template, parent_variables)
         self.connection.create_stack(name, template_body=template_body, parameters=parameters)
 
