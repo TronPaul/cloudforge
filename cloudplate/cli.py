@@ -1,8 +1,7 @@
 import argparse
 import os
 import yaml
-from jinja2 import FileSystemLoader
-from cloudplate.render import Renderer
+from cloudplate.render import make_renderer
 from cloudplate.cloudforge import Forge, make_template_body
 from cloudplate.aws import connect
 
@@ -25,10 +24,6 @@ class TemplateLookupError(LookupError):
         return 'Template {} not found in {}'.format(self.template_name, self.definition_name)
 
 
-def make_renderer(path):
-    return Renderer(FileSystemLoader(path))
-
-
 def read_yamlfile(path):
     with open(path) as f:
         return yaml.safe_load(f)
@@ -45,13 +40,13 @@ def dump(args):
     definition = load_definition(args.yamlfile, args.definition_name)
     if args.template_name not in definition['templates']:
         raise TemplateLookupError(args.template_name, args.definition_name)
-    return make_template_body(make_renderer(os.getcwd()), definition['templates'][args.template_name])
+    return make_template_body(make_renderer(), definition['templates'][args.template_name])
 
 
 def create(args):
     definition = load_definition(args.yamlfile, args.definition_name)
     connection = connect(definition)
-    forge = Forge(connection, make_renderer(os.getcwd()))
+    forge = Forge(connection, make_renderer())
     forge.forge_definition(args.definition_name, definition)
 
 

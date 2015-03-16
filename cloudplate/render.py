@@ -1,7 +1,12 @@
 import yaml
+import os
 from jinja2 import Environment, FileSystemLoader
 
 TEMPLATE_BASE = {'AWSTemplateFormatVersion': '2010-09-09'}
+
+
+def make_renderer():
+    return Renderer(FileSystemLoader(os.getcwd()))
 
 
 class Renderer(object):

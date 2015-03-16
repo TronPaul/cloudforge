@@ -1,8 +1,7 @@
 import logging
-from mock import MagicMock, patch
+from mock import MagicMock, patch, sentinel
 import boto.sts as sts
 import boto.cloudformation as cf
-from boto.cloudformation.connection import CloudFormationConnection
 
 
 def assume_role(region, role_arn, role_session_name, role_opts=None):
@@ -35,21 +34,22 @@ def connect(definition):
     return connect_to_cf(definition['region'], **conn_opts)
 
 
-def mock_side_effect(mock, rv=None):
-    def log(*args, **kwargs):
-        logging.info('{!r}: called with args={!r}, kwargs={!r}'.format(mock, args, kwargs.items()))
-        return rv
-    mock.side_effect = log
-    return log
+class LoggingMock(MagicMock):
+    def _get_child_mock(self, **kw):
+        return LoggingMock(**kw)
+
+    def _mock_call(_mock_self, *args, **kwargs):
+        logging.info('{!r}: called with args={!r}, kwargs={!r}'.format(_mock_self, args, kwargs.items()))
+        return super(LoggingMock, _mock_self)._mock_call(_mock_self, *args, **kwargs)
 
 
 def dry_run_connection(definition):
-    cf_conn = MagicMock(spec=CloudFormationConnection)
+    stsctr = LoggingMock()
+    stsctr.return_value = LoggingMock(spec=sts.STSConnection)
+    cfctr = LoggingMock()
+    cfctr.return_value = LoggingMock(spec=cf.CloudFormationConnection)
     with patch('cloudplate.aws.cf') as mock_cf:
         with patch('cloudplate.aws.sts') as mock_sts:
-            sts_conn = MagicMock()
-            mock_side_effect(mock_sts.connect_to_region, sts_conn)
-            mock_side_effect(sts_conn.assume_role, MagicMock())
-            mock_side_effect(mock_cf.connect_to_region, cf_conn)
-            connect(definition)
-    return cf_conn
+            mock_sts.connect_to_region = stsctr
+            mock_cf.connect_to_region = cfctr
+            return connect(definition)
