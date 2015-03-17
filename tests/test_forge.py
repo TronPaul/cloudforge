@@ -76,8 +76,6 @@ class ForgeTest(unittest.TestCase):
 
     def test_forge_template_with_variables(self):
         conn = mock.MagicMock(spec=CloudFormationConnection)
-        template_def = {'cloudlets': {'vared': {'variables': {'role': 'MuhRole'}},
-                                      'plain': None}}
         body = {'AWSTemplateFormatVersion': '2010-09-09',
                 'Resources': {
                     'vared': {'Type': 'AWS::IAM::InstanceProfile',
@@ -88,8 +86,8 @@ class ForgeTest(unittest.TestCase):
         r = make_renderer(cloudlets)
         forge = Forge(conn, r)
         forge.forge_template('vared',
-            {'variables': {'role': 'DatRole'},
-                        'cloudlets': {'vared': None}})
+                             {'variables': {'role': 'DatRole'},
+                              'cloudlets': {'vared': None}})
         args, kwargs = conn.create_stack.call_args
         self.assertEqual(1, conn.create_stack.call_count)
         self.assertEqual(('vared',), args)
@@ -133,13 +131,52 @@ class ForgeTest(unittest.TestCase):
         conn.describe_stack_resource.assert_called_once_with('vpc', 'VPC')
 
     def test_forge_definition(self):
-        pass
-
-    def test_forge_definition_with_variables(self):
-        pass
+        conn = mock.MagicMock(spec=CloudFormationConnection)
+        body = {'AWSTemplateFormatVersion': '2010-09-09',
+                'Resources': {
+                    'simple': {
+                        'Type': 'AWS::IAM::InstanceProfile',
+                        'Properties': {
+                            'Path': '/',
+                            'Roles': ['TheRole']
+                        }}}}
+        r = make_renderer(cloudlets)
+        forge = Forge(conn, r)
+        forge.forge_definition('plain', {'templates': {
+            'plain': {'cloudlets': {'simple': None}}
+        }})
+        args, kwargs = conn.create_stack.call_args
+        self.assertEqual(1, conn.create_stack.call_count)
+        self.assertEqual(('plain',), args)
+        self.assertEqual(body, byteify(json.loads(kwargs['template_body'])))
+        self.assertTrue(kwargs['parameters'] is None)
+        self.assertFalse(conn.describe_stacks.called)
+        self.assertFalse(conn.describe_stack_resources.called)
 
     def test_forge_definition_with_multi_templates(self):
-        pass
+        conn = mock.MagicMock(spec=CloudFormationConnection)
+        body = {'AWSTemplateFormatVersion': '2010-09-09',
+                'Resources': {
+                    'simple': {
+                        'Type': 'AWS::IAM::InstanceProfile',
+                        'Properties': {
+                            'Path': '/',
+                            'Roles': ['TheRole']
+                        }}}}
+        r = make_renderer(cloudlets)
+        forge = Forge(conn, r)
+        forge.forge_definition('plain', {'templates': {
+            'plain': {'cloudlets': {'simple': None}},
+            'plain2': {'cloudlets': {'simple': None}}
+        }})
+        self.assertEqual(2, conn.create_stack.call_count)
+        call1, call2 = conn.create_stack.call_args_list
+        self.assertEqual(('plain',), call1[0])
+        self.assertEqual(('plain2',), call2[0])
+        self.assertEqual(body, json.loads(call1[1]['template_body']))
+        self.assertEqual(body, json.loads(call2[1]['template_body']))
+        self.assertTrue(call1[1]['parameters'] is None)
+        self.assertTrue(call2[1]['parameters'] is None)
 
 
 if __name__ == '__main__':
