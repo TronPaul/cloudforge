@@ -115,4 +115,4 @@ class MissingDependencyError(Exception):
         self.dependency_name = dependency_name
 
     def __str__(self):
-        return 'Template {} requires {}, but is not defined'
+        return 'Template {} requires {}, but is not defined'.format(self.template_name, self.dependency_name)
