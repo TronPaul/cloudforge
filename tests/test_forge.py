@@ -68,6 +68,7 @@ class ForgeTest(unittest.TestCase):
                                    }}}})
         r = make_renderer(cloudlets)
         forge = Forge(conn, r)
+        forge.watcher = mock.MagicMock()
         forge.forge_template('simple', {'cloudlets': {'simple': None}})
         conn.create_stack.assert_called_once_with('simple',
                                                   template_body=body, parameters=None)
@@ -85,6 +86,7 @@ class ForgeTest(unittest.TestCase):
                               }}}}
         r = make_renderer(cloudlets)
         forge = Forge(conn, r)
+        forge.watcher = mock.MagicMock()
         forge.forge_template('vared',
                              {'variables': {'role': 'DatRole'},
                               'cloudlets': {'vared': None}})
@@ -119,6 +121,7 @@ class ForgeTest(unittest.TestCase):
                 }}
         r = make_renderer(cloudlets)
         forge = Forge(conn, r)
+        forge.watcher = mock.MagicMock()
         forge.forge_template('params', {
             'parameters': {'VPC': {'source': {'stack': 'vpc', 'type': 'resource'}, 'type': 'string'}},
             'cloudlets': {'typed': None}})
@@ -142,6 +145,7 @@ class ForgeTest(unittest.TestCase):
                         }}}}
         r = make_renderer(cloudlets)
         forge = Forge(conn, r)
+        forge.watcher = mock.MagicMock()
         forge.forge_definition('plain', {'templates': {
             'plain': {'cloudlets': {'simple': None}}
         }})
@@ -165,6 +169,7 @@ class ForgeTest(unittest.TestCase):
                         }}}}
         r = make_renderer(cloudlets)
         forge = Forge(conn, r)
+        forge.watcher = mock.MagicMock()
         forge.forge_definition('plain', {'templates': {
             'plain': {'cloudlets': {'simple': None}},
             'plain2': {'cloudlets': {'simple': None}}

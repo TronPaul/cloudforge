@@ -1,4 +1,5 @@
 import json
+from cloudforge.watcher import Watcher
 
 
 def order_templates(templates):
@@ -73,6 +74,7 @@ class Forge(object):
     def __init__(self, connection, renderer):
         self.renderer = renderer
         self.connection = connection
+        self.watcher = Watcher(connection)
 
     def forge_template(self, name, template, parent_variables=None):
         if 'parameters' in template:
@@ -81,6 +83,7 @@ class Forge(object):
             parameters = None
         template_body = make_template_body(self.renderer, template, parent_variables)
         self.connection.create_stack(name, template_body=template_body, parameters=parameters)
+        self.watcher.watch(name, ['CREATE_IN_PROGRESS'])
 
     def forge_definition(self, name, definition):
         templates = order_templates(definition['templates'])
