@@ -94,7 +94,7 @@ class RenderTemplateTest(unittest.TestCase):
                         'stack': 'vpc',
                         'type': 'resource'
                     },
-                    'type': 'string',
+                    'type': 'String',
                 }
             },
             'resources': {

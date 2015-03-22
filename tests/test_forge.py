@@ -123,7 +123,7 @@ class ForgeTest(unittest.TestCase):
         forge = Forge(conn, r)
         forge.watcher = mock.MagicMock()
         forge.forge_stack('params', {
-            'parameters': {'VPC': {'source': {'stack': 'vpc', 'type': 'resource'}, 'type': 'string'}},
+            'parameters': {'VPC': {'source': {'stack': 'vpc', 'type': 'resource'}, 'type': 'String'}},
             'resources': {'typed': None}})
         args, kwargs = conn.create_stack.call_args
         self.assertEqual(1, conn.create_stack.call_count)

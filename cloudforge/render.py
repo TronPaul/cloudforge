@@ -45,8 +45,8 @@ class Renderer(object):
         if parameter_defs:
             parameters = {}
             for name, parameter_def in parameter_defs:
-                type_ = parameter_def['type'].capitalize()
-                parameters.update({name: {'Type': type_}})
+                param = {name: {k.capitalize(): v for k, v in parameter_def.items() if k != 'source'}}
+                parameters.update(param)
             template['Parameters'] = parameters
         return template
 

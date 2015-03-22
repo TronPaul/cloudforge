@@ -7,7 +7,6 @@ class OrderStacksTest(unittest.TestCase):
         def_ = {'resources': {'fake': None}}
         stacks = {'a': def_, 'b': def_}
         rv = order_stacks(stacks)
-        print rv
         self.assertEqual(2, len(rv))
         self.assertTrue(all([i in rv for i in stacks.items()]))
 
