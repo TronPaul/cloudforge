@@ -10,10 +10,10 @@ from cloudforge.cli import dump, DefinitionLookupError, StackLookupError
 plain_stack = ('plain:\n'
                   '  stacks:\n'
                   '    my_stack:\n'
-                  '      cloudlets:\n'
+                  '      resources:\n'
                   '        plain:\n')
 
-cloudlets = {'plain.yaml': ('Type: AWS::IAM::InstanceProfile\n'
+resources = {'plain.yaml': ('Type: AWS::IAM::InstanceProfile\n'
                             'Properties:\n'
                             '  Path: /\n'
                             '  Roles:\n'
@@ -25,7 +25,7 @@ class DumpTest(unittest.TestCase):
     @mock.patch('cloudforge.cli.open', create=True)
     def test_dump_template(self, mock_open, mock_renderer):
         mock_open.return_value.__enter__.return_value = StringIO(plain_stack)
-        mock_renderer.return_value = Renderer(DictLoader(cloudlets))
+        mock_renderer.return_value = Renderer(DictLoader(resources))
         args = Namespace(definition_name='plain', stack_name='my_stack', yamlfile='test.yaml')
         self.assertEqual(json.dumps({'AWSTemplateFormatVersion': '2010-09-09',
                                      'Resources': {
@@ -39,7 +39,7 @@ class DumpTest(unittest.TestCase):
     @mock.patch('cloudforge.cli.open', create=True)
     def test_dump_bad_definition_fails(self, mock_open, mock_renderer):
         mock_open.return_value.__enter__.return_value = StringIO(plain_stack)
-        mock_renderer.return_value = Renderer(DictLoader(cloudlets))
+        mock_renderer.return_value = Renderer(DictLoader(resources))
         args = Namespace(definition_name='fake', stack_name='my_stack', yamlfile='test.yaml')
         self.assertRaises(DefinitionLookupError, dump, args)
 
@@ -47,7 +47,7 @@ class DumpTest(unittest.TestCase):
     @mock.patch('cloudforge.cli.open', create=True)
     def test_dump_bad_template_fails(self, mock_open, mock_renderer):
         mock_open.return_value.__enter__.return_value = StringIO(plain_stack)
-        mock_renderer.return_value = Renderer(DictLoader(cloudlets))
+        mock_renderer.return_value = Renderer(DictLoader(resources))
         args = Namespace(definition_name='plain', stack_name='fake_stack', yamlfile='test.yaml')
         self.assertRaises(StackLookupError, dump, args)
 

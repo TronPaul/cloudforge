@@ -13,33 +13,33 @@ class Renderer(object):
     def __init__(self, loader):
         self.env = Environment(loader=loader)
 
-    def render_cloudlet(self, cloudlet_def, parent_variables=None):
+    def render_resource(self, resource_def, parent_variables=None):
         variables = parent_variables or {}
-        if cloudlet_def[1]:
-            name = cloudlet_def[1].get('name', cloudlet_def[0])
-            template_path = cloudlet_def[1].get('template', cloudlet_def[0] + '.yaml')
-            variables.update(cloudlet_def[1].get('variables', {}))
+        if resource_def[1]:
+            name = resource_def[1].get('name', resource_def[0])
+            template_path = resource_def[1].get('template', resource_def[0] + '.yaml')
+            variables.update(resource_def[1].get('variables', {}))
         else:
-            name = cloudlet_def[0]
-            template_path = cloudlet_def[0] + '.yaml'
+            name = resource_def[0]
+            template_path = resource_def[0] + '.yaml'
         template = self.env.get_template(template_path)
         return {name: yaml.safe_load(template.render(**variables))}
 
     def render_template(self, template_def, parent_variables=None):
         variables = parent_variables or {}
-        if 'cloudlets' not in template_def:
-            raise NoCloudletsError(template_def)
-        cloudlets = template_def['cloudlets']
-        if not isinstance(cloudlets, dict):
-            raise MalformedTemplateError(template_def, "bad cloudlets definition")
-        if not cloudlets:
-            raise NoCloudletsError(template_def)
-        cloudlet_defs = cloudlets.items()
+        if 'resources' not in template_def:
+            raise NoResourcesError(template_def)
+        resources = template_def['resources']
+        if not isinstance(resources, dict):
+            raise MalformedTemplateError(template_def, "bad resources definition")
+        if not resources:
+            raise NoResourcesError(template_def)
+        resource_defs = resources.items()
         variables.update(template_def.get('variables', {}))
         template = TEMPLATE_BASE.copy()
         resources = {}
-        for cloudlet_def in cloudlet_defs:
-            resources.update(self.render_cloudlet(cloudlet_def, variables))
+        for resource_def in resource_defs:
+            resources.update(self.render_resource(resource_def, variables))
         template['Resources'] = resources
         parameter_defs = template_def.get('parameters', {}).items()
         if parameter_defs:
@@ -60,6 +60,6 @@ class MalformedTemplateError(Exception):
         return "Template {}:{} {0}".format(self.reason, *self.template_def)
 
 
-class NoCloudletsError(MalformedTemplateError):
+class NoResourcesError(MalformedTemplateError):
     def __init__(self, template_def):
-        super(NoCloudletsError, self).__init__(template_def, "has no cloudlets")
+        super(NoResourcesError, self).__init__(template_def, "has no resources")

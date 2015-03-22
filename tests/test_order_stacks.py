@@ -4,7 +4,7 @@ from cloudforge.forge import order_stacks, MissingDependencyError, CircularDepen
 
 class OrderStacksTest(unittest.TestCase):
     def test_order_returns_all_stacks_without_deps(self):
-        def_ = {'cloudlets': {'fake': None}}
+        def_ = {'resources': {'fake': None}}
         stacks = {'a': def_, 'b': def_}
         rv = order_stacks(stacks)
         print rv
@@ -15,9 +15,9 @@ class OrderStacksTest(unittest.TestCase):
         stacks = {
             'a': {
                 'requires': ['c'],
-                'cloudlets': {'fake': None}
+                'resources': {'fake': None}
             },
-            'b': {'cloudlets': {'fake': None}}
+            'b': {'resources': {'fake': None}}
         }
         self.assertRaises(MissingDependencyError, order_stacks, stacks)
 
@@ -25,9 +25,9 @@ class OrderStacksTest(unittest.TestCase):
         stacks = {
             'a': {
                 'requires': ['b'],
-                'cloudlets': {'fake': None}
+                'resources': {'fake': None}
             },
-            'b': {'cloudlets': {'fake': None}}
+            'b': {'resources': {'fake': None}}
         }
         self.assertEqual([('b', stacks['b']), ('a', stacks['a'])],
                          order_stacks(stacks))
@@ -36,11 +36,11 @@ class OrderStacksTest(unittest.TestCase):
         stacks = {
             'a': {
                 'requires': ['b'],
-                'cloudlets': {'fake': None}
+                'resources': {'fake': None}
             },
             'b': {
                 'requires': ['a'],
-                'cloudlets': {'fake': None}
+                'resources': {'fake': None}
             }
         }
         self.assertRaises(CircularDependencyError, order_stacks, stacks)
@@ -48,7 +48,7 @@ class OrderStacksTest(unittest.TestCase):
     def test_order_using_parameters(self):
         stacks = {
             'a': {
-                'cloudlets': {'fake': None}
+                'resources': {'fake': None}
             },
             'b': {
                 'parameters': {
@@ -58,7 +58,7 @@ class OrderStacksTest(unittest.TestCase):
                         }
                     }
                 },
-                'cloudlets': {'fake': None}
+                'resources': {'fake': None}
             }
         }
         self.assertEqual([('a', stacks['a']), ('b', stacks['b'])],

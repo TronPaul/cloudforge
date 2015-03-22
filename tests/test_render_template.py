@@ -1,8 +1,8 @@
 import unittest
 from jinja2 import DictLoader
-from cloudforge.render import Renderer, NoCloudletsError, MalformedTemplateError
+from cloudforge.render import Renderer, NoResourcesError, MalformedTemplateError
 
-cloudlets = {'plain.yaml': ('Type: AWS::IAM::InstanceProfile\n'
+resources = {'plain.yaml': ('Type: AWS::IAM::InstanceProfile\n'
                             'Properties:\n'
                             '  Path: /\n'
                             '  Roles:\n'
@@ -24,10 +24,10 @@ cloudlets = {'plain.yaml': ('Type: AWS::IAM::InstanceProfile\n'
 
 
 class RenderTemplateTest(unittest.TestCase):
-    renderer = Renderer(DictLoader(cloudlets))
+    renderer = Renderer(DictLoader(resources))
 
     def test_render_simple_template(self):
-        stack_def = {'cloudlets': {'plain': None}}
+        stack_def = {'resources': {'plain': None}}
         self.assertEqual({'AWSTemplateFormatVersion': '2010-09-09',
                           'Resources': {
                               'plain': {'Type': 'AWS::IAM::InstanceProfile',
@@ -36,21 +36,21 @@ class RenderTemplateTest(unittest.TestCase):
                                             'Roles': ['TheRole']
                                         }}}}, self.renderer.render_template(stack_def))
 
-    def test_render_template_without_cloudlets_fails(self):
+    def test_render_template_without_resources_fails(self):
         stack_def = {}
-        self.assertRaises(NoCloudletsError, self.renderer.render_template, stack_def)
+        self.assertRaises(NoResourcesError, self.renderer.render_template, stack_def)
 
-    def test_render_template_with_empty_cloudlets_fails(self):
-        stack_def = {'cloudlets': {}}
-        self.assertRaises(NoCloudletsError, self.renderer.render_template, stack_def)
+    def test_render_template_with_empty_resources_fails(self):
+        stack_def = {'resources': {}}
+        self.assertRaises(NoResourcesError, self.renderer.render_template, stack_def)
 
-    def test_render_template_with_bad_cloudlets_fails(self):
-        stack_def = {'cloudlets': True}
+    def test_render_template_with_bad_resources_fails(self):
+        stack_def = {'resources': True}
         self.assertRaises(MalformedTemplateError, self.renderer.render_template, stack_def)
 
     def test_render_template_with_global_params(self):
         stack_def = {'variables': {'role': 'DatRole'},
-                        'cloudlets': {'vared': None}}
+                        'resources': {'vared': None}}
         self.assertEqual({'AWSTemplateFormatVersion': '2010-09-09',
                           'Resources': {
                               'vared': {'Type': 'AWS::IAM::InstanceProfile',
@@ -61,7 +61,7 @@ class RenderTemplateTest(unittest.TestCase):
 
     def test_render_template_with_global_params_is_overridden_by_local_params(self):
         stack_def = {'variables': {'role': 'DatRole'},
-                        'cloudlets': {'vared': {'variables': {'role': 'MuhRole'}}}}
+                        'resources': {'vared': {'variables': {'role': 'MuhRole'}}}}
         self.assertEqual({'AWSTemplateFormatVersion': '2010-09-09',
                           'Resources': {
                               'vared': {'Type': 'AWS::IAM::InstanceProfile',
@@ -70,8 +70,8 @@ class RenderTemplateTest(unittest.TestCase):
                                             'Roles': ['MuhRole']
                                         }}}}, self.renderer.render_template(stack_def))
 
-    def test_render_template_with_two_cloudlets(self):
-        stack_def = {'cloudlets': {'vared': {'variables': {'role': 'MuhRole'}},
+    def test_render_template_with_two_resources(self):
+        stack_def = {'resources': {'vared': {'variables': {'role': 'MuhRole'}},
                                       'plain': None}}
         self.assertEqual({'AWSTemplateFormatVersion': '2010-09-09',
                           'Resources': {
@@ -97,7 +97,7 @@ class RenderTemplateTest(unittest.TestCase):
                     'type': 'string',
                 }
             },
-            'cloudlets': {
+            'resources': {
                 'typed': None
             }
         }

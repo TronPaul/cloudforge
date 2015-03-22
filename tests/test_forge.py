@@ -6,7 +6,7 @@ from jinja2 import DictLoader
 from cloudforge.forge import Forge
 from cloudforge.render import Renderer
 
-cloudlets = {'simple.yaml': ('Type: AWS::IAM::InstanceProfile\n'
+resources = {'simple.yaml': ('Type: AWS::IAM::InstanceProfile\n'
                              'Properties:\n'
                              '  Path: /\n'
                              '  Roles:\n'
@@ -66,10 +66,10 @@ class ForgeTest(unittest.TestCase):
                                        'Path': '/',
                                        'Roles': ['TheRole']
                                    }}}})
-        r = make_renderer(cloudlets)
+        r = make_renderer(resources)
         forge = Forge(conn, r)
         forge.watcher = mock.MagicMock()
-        forge.forge_stack('simple', {'cloudlets': {'simple': None}})
+        forge.forge_stack('simple', {'resources': {'simple': None}})
         conn.create_stack.assert_called_once_with('simple',
                                                   template_body=body, parameters=None)
         self.assertFalse(conn.describe_stacks.called)
@@ -84,12 +84,12 @@ class ForgeTest(unittest.TestCase):
                                   'Path': '/',
                                   'Roles': ['DatRole']
                               }}}}
-        r = make_renderer(cloudlets)
+        r = make_renderer(resources)
         forge = Forge(conn, r)
         forge.watcher = mock.MagicMock()
         forge.forge_stack('vared',
                              {'variables': {'role': 'DatRole'},
-                              'cloudlets': {'vared': None}})
+                              'resources': {'vared': None}})
         args, kwargs = conn.create_stack.call_args
         self.assertEqual(1, conn.create_stack.call_count)
         self.assertEqual(('vared',), args)
@@ -119,12 +119,12 @@ class ForgeTest(unittest.TestCase):
                         }
                     }
                 }}
-        r = make_renderer(cloudlets)
+        r = make_renderer(resources)
         forge = Forge(conn, r)
         forge.watcher = mock.MagicMock()
         forge.forge_stack('params', {
             'parameters': {'VPC': {'source': {'stack': 'vpc', 'type': 'resource'}, 'type': 'string'}},
-            'cloudlets': {'typed': None}})
+            'resources': {'typed': None}})
         args, kwargs = conn.create_stack.call_args
         self.assertEqual(1, conn.create_stack.call_count)
         self.assertEqual(('params',), args)
@@ -143,11 +143,11 @@ class ForgeTest(unittest.TestCase):
                             'Path': '/',
                             'Roles': ['TheRole']
                         }}}}
-        r = make_renderer(cloudlets)
+        r = make_renderer(resources)
         forge = Forge(conn, r)
         forge.watcher = mock.MagicMock()
         forge.forge_definition('plain', {'stacks': {
-            'plain': {'cloudlets': {'simple': None}}
+            'plain': {'resources': {'simple': None}}
         }})
         args, kwargs = conn.create_stack.call_args
         self.assertEqual(1, conn.create_stack.call_count)
@@ -167,12 +167,12 @@ class ForgeTest(unittest.TestCase):
                             'Path': '/',
                             'Roles': ['TheRole']
                         }}}}
-        r = make_renderer(cloudlets)
+        r = make_renderer(resources)
         forge = Forge(conn, r)
         forge.watcher = mock.MagicMock()
         forge.forge_definition('plain', {'stacks': {
-            'plain': {'cloudlets': {'simple': None}},
-            'plain2': {'cloudlets': {'simple': None}}
+            'plain': {'resources': {'simple': None}},
+            'plain2': {'resources': {'simple': None}}
         }})
         self.assertEqual(2, conn.create_stack.call_count)
         call1, call2 = conn.create_stack.call_args_list
