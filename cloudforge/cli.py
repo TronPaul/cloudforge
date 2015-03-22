@@ -3,7 +3,7 @@ import os
 import yaml
 from cloudforge.render import make_renderer
 from cloudforge.forge import Forge, make_template_body
-from cloudforge.aws import connect
+from cloudforge.aws import connect, dry_run_connection
 
 
 class DefinitionLookupError(LookupError):
@@ -45,20 +45,29 @@ def dump(args):
 
 def create(args):
     definition = load_definition(args.yamlfile, args.definition_name)
-    connection = connect(definition)
+    if args.noop:
+        connection = dry_run_connection(definition)
+    else:
+        connection = connect(definition)
     forge = Forge(connection, make_renderer())
     forge.forge_definition(args.definition_name, definition)
 
 
 def cloudforge():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description='Forge CloudFormation stacks')
     subparsers = parser.add_subparsers()
 
-    dump_p = subparsers.add_parser('dump')
+    dump_p = subparsers.add_parser('dump', description='Dump template from Cloudforge definition')
     dump_p.set_defaults(func=dump)
     dump_p.add_argument('yamlfile', help='The file to read the Cloudplate definitions from')
     dump_p.add_argument('definition_name', help='The definition name')
     dump_p.add_argument('template_name', help='The template name')
+
+    create_p = subparsers.add_parser('create', description='Create stack in CloudFormation from Cloudforge definition')
+    create_p.set_defaults(func=create)
+    create_p.add_argument('yamlfile', help='The file to read the Cloudplate definitions from')
+    create_p.add_argument('definition_name', help='The definition name')
+    create_p.add_argument('--noop', action='store_true', help='Use a fake connection to simulate a run')
 
     args = parser.parse_args()
     args.func(args)
