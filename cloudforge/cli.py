@@ -15,13 +15,13 @@ class DefinitionLookupError(LookupError):
         return 'Definition {} not found in {}'.format(self.definition_name, self.yamlfile)
 
 
-class TemplateLookupError(LookupError):
-    def __init__(self, template_name, definition_name):
-        self.template_name = template_name
+class StackLookupError(LookupError):
+    def __init__(self, stack_name, definition_name):
+        self.stack_name = stack_name
         self.definition_name = definition_name
 
     def __str__(self):
-        return 'Template {} not found in {}'.format(self.template_name, self.definition_name)
+        return 'Stack {} not found in {}'.format(self.stack_name, self.definition_name)
 
 
 def read_yamlfile(path):
@@ -38,9 +38,9 @@ def load_definition(yamlfile, definition_name):
 
 def dump(args):
     definition = load_definition(args.yamlfile, args.definition_name)
-    if args.template_name not in definition['templates']:
-        raise TemplateLookupError(args.template_name, args.definition_name)
-    return make_template_body(make_renderer(), definition['templates'][args.template_name])
+    if args.stack_name not in definition['stacks']:
+        raise StackLookupError(args.stack_name, args.definition_name)
+    return make_template_body(make_renderer(), definition['stacks'][args.stack_name])
 
 
 def create(args):
@@ -61,7 +61,7 @@ def cloudforge():
     dump_p.set_defaults(func=dump)
     dump_p.add_argument('yamlfile', help='The file to read the Cloudplate definitions from')
     dump_p.add_argument('definition_name', help='The definition name')
-    dump_p.add_argument('template_name', help='The template name')
+    dump_p.add_argument('stack_name', help='The stack name')
 
     create_p = subparsers.add_parser('create', description='Create stack in CloudFormation from Cloudforge definition')
     create_p.set_defaults(func=create)

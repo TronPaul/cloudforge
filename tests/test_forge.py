@@ -56,7 +56,7 @@ def mock_resource_id(mock_conn, value):
 
 
 class ForgeTest(unittest.TestCase):
-    def test_forge_template(self):
+    def test_forge_stack(self):
         conn = mock.MagicMock(spec=CloudFormationConnection)
         body = json.dumps({'AWSTemplateFormatVersion': '2010-09-09',
                            'Resources': {
@@ -69,13 +69,13 @@ class ForgeTest(unittest.TestCase):
         r = make_renderer(cloudlets)
         forge = Forge(conn, r)
         forge.watcher = mock.MagicMock()
-        forge.forge_template('simple', {'cloudlets': {'simple': None}})
+        forge.forge_stack('simple', {'cloudlets': {'simple': None}})
         conn.create_stack.assert_called_once_with('simple',
                                                   template_body=body, parameters=None)
         self.assertFalse(conn.describe_stacks.called)
         self.assertFalse(conn.describe_stack_resources.called)
 
-    def test_forge_template_with_variables(self):
+    def test_forge_stack_with_variables(self):
         conn = mock.MagicMock(spec=CloudFormationConnection)
         body = {'AWSTemplateFormatVersion': '2010-09-09',
                 'Resources': {
@@ -87,7 +87,7 @@ class ForgeTest(unittest.TestCase):
         r = make_renderer(cloudlets)
         forge = Forge(conn, r)
         forge.watcher = mock.MagicMock()
-        forge.forge_template('vared',
+        forge.forge_stack('vared',
                              {'variables': {'role': 'DatRole'},
                               'cloudlets': {'vared': None}})
         args, kwargs = conn.create_stack.call_args
@@ -98,7 +98,7 @@ class ForgeTest(unittest.TestCase):
         self.assertFalse(conn.describe_stacks.called)
         self.assertFalse(conn.describe_stack_resources.called)
 
-    def test_forge_template_with_params(self):
+    def test_forge_stack_with_params(self):
         conn = mock.MagicMock(spec=CloudFormationConnection)
         mock_resource_id(conn, 'vpc-12345')
         body = {'AWSTemplateFormatVersion': '2010-09-09',
@@ -122,7 +122,7 @@ class ForgeTest(unittest.TestCase):
         r = make_renderer(cloudlets)
         forge = Forge(conn, r)
         forge.watcher = mock.MagicMock()
-        forge.forge_template('params', {
+        forge.forge_stack('params', {
             'parameters': {'VPC': {'source': {'stack': 'vpc', 'type': 'resource'}, 'type': 'string'}},
             'cloudlets': {'typed': None}})
         args, kwargs = conn.create_stack.call_args
@@ -146,7 +146,7 @@ class ForgeTest(unittest.TestCase):
         r = make_renderer(cloudlets)
         forge = Forge(conn, r)
         forge.watcher = mock.MagicMock()
-        forge.forge_definition('plain', {'templates': {
+        forge.forge_definition('plain', {'stacks': {
             'plain': {'cloudlets': {'simple': None}}
         }})
         args, kwargs = conn.create_stack.call_args
@@ -157,7 +157,7 @@ class ForgeTest(unittest.TestCase):
         self.assertFalse(conn.describe_stacks.called)
         self.assertFalse(conn.describe_stack_resources.called)
 
-    def test_forge_definition_with_multi_templates(self):
+    def test_forge_definition_with_multi_stacks(self):
         conn = mock.MagicMock(spec=CloudFormationConnection)
         body = {'AWSTemplateFormatVersion': '2010-09-09',
                 'Resources': {
@@ -170,7 +170,7 @@ class ForgeTest(unittest.TestCase):
         r = make_renderer(cloudlets)
         forge = Forge(conn, r)
         forge.watcher = mock.MagicMock()
-        forge.forge_definition('plain', {'templates': {
+        forge.forge_definition('plain', {'stacks': {
             'plain': {'cloudlets': {'simple': None}},
             'plain2': {'cloudlets': {'simple': None}}
         }})

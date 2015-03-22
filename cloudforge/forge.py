@@ -2,21 +2,21 @@ import json
 from cloudforge.watcher import Watcher
 
 
-def order_templates(templates):
+def order_stacks(stack_definitions):
     dep_graph = {}
     satisfied_deps = []
-    sorted_templates = []
-    for name, template in templates.items():
+    sorted_stack_definitions = []
+    for name, stack_definition in stack_definitions.items():
         deps = set()
-        if 'parameters' in template:
-            for p_name, p_def in template['parameters'].items():
+        if 'parameters' in stack_definition:
+            for p_name, p_def in stack_definition['parameters'].items():
                 if 'source' in p_def:
-                    deps.add(p_def['source']['template'])
-        if 'requires' in template:
-            deps.update(template['requires'])
+                    deps.add(p_def['source']['stack'])
+        if 'requires' in stack_definition:
+            deps.update(stack_definition['requires'])
         if deps:
             for dep in deps:
-                if dep not in templates:
+                if dep not in stack_definitions:
                     raise MissingDependencyError(name, dep)
             else:
                 dep_graph[name] = list(deps)
@@ -24,7 +24,7 @@ def order_templates(templates):
             satisfied_deps.append(name)
     while len(satisfied_deps) > 0:
         completed_name = satisfied_deps.pop()
-        sorted_templates.append((completed_name, templates[completed_name]))
+        sorted_stack_definitions.append((completed_name, stack_definitions[completed_name]))
         for name, deps in dep_graph.items():
             if completed_name in deps:
                 deps.remove(completed_name)
@@ -33,7 +33,7 @@ def order_templates(templates):
                     del dep_graph[name]
     if len(dep_graph) > 0:
         raise CircularDependencyError(dep_graph.keys())
-    return sorted_templates
+    return sorted_stack_definitions
 
 
 def make_template_body(renderer, template, parent_variables=None):
@@ -76,20 +76,20 @@ class Forge(object):
         self.connection = connection
         self.watcher = Watcher(connection)
 
-    def forge_template(self, name, template, parent_variables=None):
-        if 'parameters' in template:
-            parameters = build_parameters(self.connection, template['parameters'])
+    def forge_stack(self, name, stack, parent_variables=None):
+        if 'parameters' in stack:
+            parameters = build_parameters(self.connection, stack['parameters'])
         else:
             parameters = None
-        template_body = make_template_body(self.renderer, template, parent_variables)
+        template_body = make_template_body(self.renderer, stack, parent_variables)
         self.connection.create_stack(name, template_body=template_body, parameters=parameters)
         self.watcher.watch(name, ['CREATE_IN_PROGRESS'])
 
     def forge_definition(self, name, definition):
-        templates = order_templates(definition['templates'])
+        stacks = order_stacks(definition['stacks'])
         variables = definition.get('variables')
-        for name, template in templates:
-            self.forge_template(name, template, variables)
+        for name, stack_def in stacks:
+            self.forge_stack(name, stack_def, variables)
 
 
 class CloudformationValueNotFound(LookupError):
@@ -109,13 +109,13 @@ class CircularDependencyError(Exception):
         self.remaining_dependencies = remaining_dependencies
 
     def __str__(self):
-        return 'Templates {} have a circular dependency'.format(self.remaining_dependencies)
+        return 'Stacks {} have a circular dependency'.format(self.remaining_dependencies)
 
 
 class MissingDependencyError(Exception):
-    def __init__(self, template_name, dependency_name):
-        self.template_name = template_name
+    def __init__(self, stack_name, dependency_name):
+        self.stack_name = stack_name
         self.dependency_name = dependency_name
 
     def __str__(self):
-        return 'Template {} requires {}, but is not defined'.format(self.template_name, self.dependency_name)
+        return 'Stack {} requires {}, but is not defined'.format(self.stack_name, self.dependency_name)

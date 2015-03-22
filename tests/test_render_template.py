@@ -27,29 +27,29 @@ class RenderTemplateTest(unittest.TestCase):
     renderer = Renderer(DictLoader(cloudlets))
 
     def test_render_simple_template(self):
-        template_def = {'cloudlets': {'plain': None}}
+        stack_def = {'cloudlets': {'plain': None}}
         self.assertEqual({'AWSTemplateFormatVersion': '2010-09-09',
                           'Resources': {
                               'plain': {'Type': 'AWS::IAM::InstanceProfile',
                                         'Properties': {
                                             'Path': '/',
                                             'Roles': ['TheRole']
-                                        }}}}, self.renderer.render_template(template_def))
+                                        }}}}, self.renderer.render_template(stack_def))
 
     def test_render_template_without_cloudlets_fails(self):
-        template_def = {}
-        self.assertRaises(NoCloudletsError, self.renderer.render_template, template_def)
+        stack_def = {}
+        self.assertRaises(NoCloudletsError, self.renderer.render_template, stack_def)
 
     def test_render_template_with_empty_cloudlets_fails(self):
-        template_def = {'cloudlets': {}}
-        self.assertRaises(NoCloudletsError, self.renderer.render_template, template_def)
+        stack_def = {'cloudlets': {}}
+        self.assertRaises(NoCloudletsError, self.renderer.render_template, stack_def)
 
     def test_render_template_with_bad_cloudlets_fails(self):
-        template_def = {'cloudlets': True}
-        self.assertRaises(MalformedTemplateError, self.renderer.render_template, template_def)
+        stack_def = {'cloudlets': True}
+        self.assertRaises(MalformedTemplateError, self.renderer.render_template, stack_def)
 
     def test_render_template_with_global_params(self):
-        template_def = {'variables': {'role': 'DatRole'},
+        stack_def = {'variables': {'role': 'DatRole'},
                         'cloudlets': {'vared': None}}
         self.assertEqual({'AWSTemplateFormatVersion': '2010-09-09',
                           'Resources': {
@@ -57,10 +57,10 @@ class RenderTemplateTest(unittest.TestCase):
                                         'Properties': {
                                             'Path': '/',
                                             'Roles': ['DatRole']
-                                        }}}}, self.renderer.render_template(template_def))
+                                        }}}}, self.renderer.render_template(stack_def))
 
     def test_render_template_with_global_params_is_overridden_by_local_params(self):
-        template_def = {'variables': {'role': 'DatRole'},
+        stack_def = {'variables': {'role': 'DatRole'},
                         'cloudlets': {'vared': {'variables': {'role': 'MuhRole'}}}}
         self.assertEqual({'AWSTemplateFormatVersion': '2010-09-09',
                           'Resources': {
@@ -68,10 +68,10 @@ class RenderTemplateTest(unittest.TestCase):
                                         'Properties': {
                                             'Path': '/',
                                             'Roles': ['MuhRole']
-                                        }}}}, self.renderer.render_template(template_def))
+                                        }}}}, self.renderer.render_template(stack_def))
 
     def test_render_template_with_two_cloudlets(self):
-        template_def = {'cloudlets': {'vared': {'variables': {'role': 'MuhRole'}},
+        stack_def = {'cloudlets': {'vared': {'variables': {'role': 'MuhRole'}},
                                       'plain': None}}
         self.assertEqual({'AWSTemplateFormatVersion': '2010-09-09',
                           'Resources': {
@@ -84,10 +84,10 @@ class RenderTemplateTest(unittest.TestCase):
                                         'Properties': {
                                             'Path': '/',
                                             'Roles': ['MuhRole']
-                                        }}}}, self.renderer.render_template(template_def))
+                                        }}}}, self.renderer.render_template(stack_def))
 
     def test_render_template_with_resource_param(self):
-        template_def = {
+        stack_def = {
             'parameters': {
                 'VPC': {
                     'source': {
@@ -118,7 +118,7 @@ class RenderTemplateTest(unittest.TestCase):
                                       ]
                                   }
                               }
-                          }}, self.renderer.render_template(template_def))
+                          }}, self.renderer.render_template(stack_def))
 
 
 if __name__ == '__main__':

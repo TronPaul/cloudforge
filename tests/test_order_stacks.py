@@ -1,39 +1,39 @@
 import unittest
-from cloudforge.forge import order_templates, MissingDependencyError, CircularDependencyError
+from cloudforge.forge import order_stacks, MissingDependencyError, CircularDependencyError
 
 
-class OrderTemplatesTest(unittest.TestCase):
-    def test_order_returns_all_templates_without_deps(self):
+class OrderStacksTest(unittest.TestCase):
+    def test_order_returns_all_stacks_without_deps(self):
         def_ = {'cloudlets': {'fake': None}}
-        templates = {'a': def_, 'b': def_}
-        rv = order_templates(templates)
+        stacks = {'a': def_, 'b': def_}
+        rv = order_stacks(stacks)
         print rv
         self.assertEqual(2, len(rv))
-        self.assertTrue(all([i in rv for i in templates.items()]))
+        self.assertTrue(all([i in rv for i in stacks.items()]))
 
     def test_order_with_missing_dep_fails(self):
-        templates = {
+        stacks = {
             'a': {
                 'requires': ['c'],
                 'cloudlets': {'fake': None}
             },
             'b': {'cloudlets': {'fake': None}}
         }
-        self.assertRaises(MissingDependencyError, order_templates, templates)
+        self.assertRaises(MissingDependencyError, order_stacks, stacks)
 
     def test_order_with_simple_deps(self):
-        templates = {
+        stacks = {
             'a': {
                 'requires': ['b'],
                 'cloudlets': {'fake': None}
             },
             'b': {'cloudlets': {'fake': None}}
         }
-        self.assertEqual([('b', templates['b']), ('a', templates['a'])],
-                         order_templates(templates))
+        self.assertEqual([('b', stacks['b']), ('a', stacks['a'])],
+                         order_stacks(stacks))
 
     def test_order_with_circular_deps(self):
-        templates = {
+        stacks = {
             'a': {
                 'requires': ['b'],
                 'cloudlets': {'fake': None}
@@ -43,10 +43,10 @@ class OrderTemplatesTest(unittest.TestCase):
                 'cloudlets': {'fake': None}
             }
         }
-        self.assertRaises(CircularDependencyError, order_templates, templates)
+        self.assertRaises(CircularDependencyError, order_stacks, stacks)
 
     def test_order_using_parameters(self):
-        templates = {
+        stacks = {
             'a': {
                 'cloudlets': {'fake': None}
             },
@@ -54,15 +54,15 @@ class OrderTemplatesTest(unittest.TestCase):
                 'parameters': {
                     'thing': {
                         'source': {
-                            'template': 'a'
+                            'stack': 'a'
                         }
                     }
                 },
                 'cloudlets': {'fake': None}
             }
         }
-        self.assertEqual([('a', templates['a']), ('b', templates['b'])],
-                         order_templates(templates))
+        self.assertEqual([('a', stacks['a']), ('b', stacks['b'])],
+                         order_stacks(stacks))
 
 
 if __name__ == '__main__':
