@@ -1,6 +1,10 @@
+import json
 import unittest
+import mock
 from jinja2 import DictLoader
+from StringIO import StringIO
 from cloudforge.render import Renderer, NoResourcesError, MalformedTemplateError
+from .util import byteify
 
 resources = {'plain.yaml': ('Type: AWS::IAM::InstanceProfile\n'
                             'Properties:\n'
@@ -50,7 +54,7 @@ class RenderTemplateTest(unittest.TestCase):
 
     def test_render_template_with_global_params(self):
         stack_def = {'variables': {'role': 'DatRole'},
-                        'resources': {'vared': None}}
+                     'resources': {'vared': None}}
         self.assertEqual({'AWSTemplateFormatVersion': '2010-09-09',
                           'Resources': {
                               'vared': {'Type': 'AWS::IAM::InstanceProfile',
@@ -61,7 +65,7 @@ class RenderTemplateTest(unittest.TestCase):
 
     def test_render_template_with_global_params_is_overridden_by_local_params(self):
         stack_def = {'variables': {'role': 'DatRole'},
-                        'resources': {'vared': {'variables': {'role': 'MuhRole'}}}}
+                     'resources': {'vared': {'variables': {'role': 'MuhRole'}}}}
         self.assertEqual({'AWSTemplateFormatVersion': '2010-09-09',
                           'Resources': {
                               'vared': {'Type': 'AWS::IAM::InstanceProfile',
@@ -72,7 +76,7 @@ class RenderTemplateTest(unittest.TestCase):
 
     def test_render_template_with_two_resources(self):
         stack_def = {'resources': {'vared': {'variables': {'role': 'MuhRole'}},
-                                      'plain': None}}
+                                   'plain': None}}
         self.assertEqual({'AWSTemplateFormatVersion': '2010-09-09',
                           'Resources': {
                               'plain': {'Type': 'AWS::IAM::InstanceProfile',
@@ -119,6 +123,24 @@ class RenderTemplateTest(unittest.TestCase):
                                   }
                               }
                           }}, self.renderer.render_template(stack_def))
+
+    @mock.patch('cloudforge.render.open', create=True)
+    def test_render_template_with_resource_chunk(self, mock_open):
+        plain_stack = json.dumps({
+            'plain': {'Type': 'AWS::IAM::InstanceProfile',
+                      'Properties': {
+                          'Path': '/',
+                          'Roles': ['TheRole']
+                      }}})
+        mock_open.return_value.__enter__.return_value = StringIO(plain_stack)
+        stack_def = {'resource_chunk': 'resources.json'}
+        self.assertEqual({'AWSTemplateFormatVersion': '2010-09-09',
+                          'Resources': {
+                              'plain': {'Type': 'AWS::IAM::InstanceProfile',
+                                        'Properties': {
+                                            'Path': '/',
+                                            'Roles': ['TheRole']
+                                        }}}}, byteify(self.renderer.render_template(stack_def)))
 
 
 if __name__ == '__main__':

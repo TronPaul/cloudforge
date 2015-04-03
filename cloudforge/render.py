@@ -1,3 +1,4 @@
+import json
 import yaml
 import os
 from jinja2 import Environment, FileSystemLoader
@@ -27,20 +28,23 @@ class Renderer(object):
 
     def render_template(self, template_def, parent_variables=None):
         variables = parent_variables or {}
-        if 'resources' not in template_def:
+        if 'resource_chunk' in template_def:
+            with open(template_def['resource_chunk']) as fp:
+                rendered_resources = json.load(fp)
+        else:
+            rendered_resources = {}
+        if 'resources' in template_def:
+            resources_def = template_def['resources']
+            if not isinstance(resources_def, dict):
+                raise MalformedTemplateError(template_def, "bad resources definition")
+            resource_defs = resources_def.items()
+            variables.update(template_def.get('variables', {}))
+            for resource_def in resource_defs:
+                rendered_resources.update(self.render_resource(resource_def, variables))
+        if not rendered_resources:
             raise NoResourcesError(template_def)
-        resources = template_def['resources']
-        if not isinstance(resources, dict):
-            raise MalformedTemplateError(template_def, "bad resources definition")
-        if not resources:
-            raise NoResourcesError(template_def)
-        resource_defs = resources.items()
-        variables.update(template_def.get('variables', {}))
         template = TEMPLATE_BASE.copy()
-        resources = {}
-        for resource_def in resource_defs:
-            resources.update(self.render_resource(resource_def, variables))
-        template['Resources'] = resources
+        template['Resources'] = rendered_resources
         parameter_defs = template_def.get('parameters', {}).items()
         if parameter_defs:
             parameters = {}

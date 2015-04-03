@@ -8,10 +8,10 @@ from cloudforge.render import Renderer
 from cloudforge.cli import dump, DefinitionLookupError, StackLookupError
 
 plain_stack = ('plain:\n'
-                  '  stacks:\n'
-                  '    my_stack:\n'
-                  '      resources:\n'
-                  '        plain:\n')
+               '  stacks:\n'
+               '    my_stack:\n'
+               '      resources:\n'
+               '        plain:\n')
 
 resources = {'plain.yaml': ('Type: AWS::IAM::InstanceProfile\n'
                             'Properties:\n'

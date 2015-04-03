@@ -5,6 +5,7 @@ from boto.cloudformation import CloudFormationConnection
 from jinja2 import DictLoader
 from cloudforge.forge import Forge
 from cloudforge.render import Renderer
+from .util import byteify
 
 resources = {'simple.yaml': ('Type: AWS::IAM::InstanceProfile\n'
                              'Properties:\n'
@@ -30,17 +31,6 @@ resources = {'simple.yaml': ('Type: AWS::IAM::InstanceProfile\n'
 def make_renderer(d):
     return Renderer(DictLoader(d))
 
-
-# Not asserting on unicode input
-def byteify(input):
-    if isinstance(input, dict):
-        return {byteify(key): byteify(value) for key, value in input.iteritems()}
-    elif isinstance(input, list):
-        return [byteify(element) for element in input]
-    elif isinstance(input, unicode):
-        return input.encode('utf-8')
-    else:
-        return input
 
 
 def mock_resource_id(mock_conn, value):
