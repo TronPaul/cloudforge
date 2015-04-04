@@ -41,6 +41,14 @@ class Renderer(object):
         return {name: yaml.safe_load(template.render(**variables))}
 
     def render_template(self, template_def, parent_variables=None):
+        template = TEMPLATE_BASE.copy()
+        if 'parameters' in template_def:
+            parameters = {}
+            parameters_def = template_def['parameters']
+            for name, parameter_def in parameters_def.items():
+                param = {name: {k.capitalize(): v for k, v in parameter_def.items() if k != 'source'}}
+                parameters.update(param)
+            template['Parameters'] = parameters
         variables = parent_variables or {}
         if 'resource_chunk' in template_def:
             with open(template_def['resource_chunk']) as fp:
@@ -57,15 +65,7 @@ class Renderer(object):
                 rendered_resources.update(self.render_resource(resource_def, variables))
         if not rendered_resources:
             raise NoResourcesError(template_def)
-        template = TEMPLATE_BASE.copy()
         template['Resources'] = rendered_resources
-        parameter_defs = template_def.get('parameters', {}).items()
-        if parameter_defs:
-            parameters = {}
-            for name, parameter_def in parameter_defs:
-                param = {name: {k.capitalize(): v for k, v in parameter_def.items() if k != 'source'}}
-                parameters.update(param)
-            template['Parameters'] = parameters
         return stringify(template)
 
 
