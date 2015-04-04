@@ -38,7 +38,8 @@ class Renderer(object):
             name = resource_def[0]
             template_path = resource_def[0] + '.yaml'
         template = self.env.get_template(template_path)
-        return {name: yaml.safe_load(template.render(**variables))}
+        resource = yaml.safe_load(template.render(**variables))
+        return {name: {k[0].upper() + k[1:]: v for k, v in resource.items()}}
 
     def render_template(self, template_def, parent_variables=None):
         template = TEMPLATE_BASE.copy()
@@ -46,9 +47,11 @@ class Renderer(object):
             parameters = {}
             parameters_def = template_def['parameters']
             for name, parameter_def in parameters_def.items():
-                param = {name: {k.capitalize(): v for k, v in parameter_def.items() if k != 'source'}}
+                param = {name: {k[0].upper() + k[1:]: v for k, v in parameter_def.items() if k != 'source'}}
                 parameters.update(param)
             template['Parameters'] = parameters
+        if 'mappings' in template_def:
+            template['Mappings'] = template_def['mappings']
         variables = parent_variables or {}
         if 'resource_chunk' in template_def:
             with open(template_def['resource_chunk']) as fp:
