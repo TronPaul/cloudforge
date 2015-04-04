@@ -41,7 +41,7 @@ def dump(args):
     definition = load_definition(args.yamlfile, args.definition_name)
     if args.stack_name not in definition['stacks']:
         raise StackLookupError(args.stack_name, args.definition_name)
-    return json.dumps(make_template_body(make_renderer(definition), definition['stacks'][args.stack_name]))
+    return make_template_body(make_renderer(definition), definition['stacks'][args.stack_name])
 
 
 def create(args):

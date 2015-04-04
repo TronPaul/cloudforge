@@ -34,7 +34,7 @@ class DumpTest(unittest.TestCase):
                                                    'Properties': {
                                                        'Path': '/',
                                                        'Roles': ['TheRole']
-                                                   }}}}), byteify(json.loads(dump(args))))
+                                                   }}}}), dump(args))
 
     @mock.patch('cloudforge.cli.make_renderer')
     @mock.patch('cloudforge.cli.open', create=True)
