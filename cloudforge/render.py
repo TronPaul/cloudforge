@@ -13,6 +13,17 @@ def make_renderer(definition):
         return Renderer(FileSystemLoader('./'))
 
 
+def stringify(thing):
+    if isinstance(thing, dict):
+        return {k: stringify(v) for k, v in thing.items()}
+    elif isinstance(thing, list):
+        return [stringify(v) for v in thing]
+    elif isinstance(thing, int) or isinstance(thing, bool):
+        return str(thing)
+    else:
+        return thing
+
+
 class Renderer(object):
     def __init__(self, loader):
         self.env = Environment(loader=loader)
@@ -55,7 +66,7 @@ class Renderer(object):
                 param = {name: {k.capitalize(): v for k, v in parameter_def.items() if k != 'source'}}
                 parameters.update(param)
             template['Parameters'] = parameters
-        return template
+        return stringify(template)
 
 
 class MalformedTemplateError(Exception):

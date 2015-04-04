@@ -6,6 +6,7 @@ from argparse import Namespace
 from StringIO import StringIO
 from cloudforge.render import Renderer
 from cloudforge.cli import dump, DefinitionLookupError, StackLookupError
+from .util import byteify
 
 plain_stack = ('plain:\n'
                '  stacks:\n'
@@ -33,7 +34,7 @@ class DumpTest(unittest.TestCase):
                                                    'Properties': {
                                                        'Path': '/',
                                                        'Roles': ['TheRole']
-                                                   }}}}), dump(args))
+                                                   }}}}), byteify(json.loads(dump(args))))
 
     @mock.patch('cloudforge.cli.make_renderer')
     @mock.patch('cloudforge.cli.open', create=True)

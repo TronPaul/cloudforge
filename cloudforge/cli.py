@@ -41,7 +41,7 @@ def dump(args):
     definition = load_definition(args.yamlfile, args.definition_name)
     if args.stack_name not in definition['stacks']:
         raise StackLookupError(args.stack_name, args.definition_name)
-    print json.dumps(make_template_body(make_renderer(definition), definition['stacks'][args.stack_name]))
+    return json.dumps(make_template_body(make_renderer(definition), definition['stacks'][args.stack_name]))
 
 
 def create(args):
@@ -71,4 +71,6 @@ def cloudforge():
     create_p.add_argument('--noop', action='store_true', help='Use a fake connection to simulate a run')
 
     args = parser.parse_args()
-    args.func(args)
+    rv = args.func(args)
+    if rv:
+        print rv
