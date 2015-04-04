@@ -1,4 +1,5 @@
 import argparse
+import json
 import os
 import yaml
 from cloudforge.render import make_renderer
@@ -40,7 +41,7 @@ def dump(args):
     definition = load_definition(args.yamlfile, args.definition_name)
     if args.stack_name not in definition['stacks']:
         raise StackLookupError(args.stack_name, args.definition_name)
-    return make_template_body(make_renderer(), definition['stacks'][args.stack_name])
+    print json.dumps(make_template_body(make_renderer(definition), definition['stacks'][args.stack_name]))
 
 
 def create(args):
@@ -49,7 +50,7 @@ def create(args):
         connection = dry_run_connection(definition)
     else:
         connection = connect(definition)
-    forge = Forge(connection, make_renderer())
+    forge = Forge(connection, make_renderer(definition))
     forge.forge_definition(args.definition_name, definition)
 
 

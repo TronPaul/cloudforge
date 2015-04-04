@@ -6,8 +6,11 @@ from jinja2 import Environment, FileSystemLoader
 TEMPLATE_BASE = {'AWSTemplateFormatVersion': '2010-09-09'}
 
 
-def make_renderer():
-    return Renderer(FileSystemLoader(os.getcwd()))
+def make_renderer(definition):
+    if 'template_path' in definition:
+        return Renderer(FileSystemLoader(definition['template_path']))
+    else:
+        return Renderer(FileSystemLoader('./'))
 
 
 class Renderer(object):
