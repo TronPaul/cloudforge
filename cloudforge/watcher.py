@@ -16,7 +16,7 @@ def filter_events_before(last_event, events):
 
 
 def log_event(event):
-    logger.info('{timestamp} {status} {type} {logical_id} {physical_id} {reason}'.format(
+    logger.info('{} {} {} {} {} {}'.format(
         event.timestamp.isoformat(),
         event.resource_status,
         event.resource_type,

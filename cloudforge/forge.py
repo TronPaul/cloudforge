@@ -1,4 +1,5 @@
 import json
+from boto.exception import BotoServerError
 from cloudforge.watcher import Watcher
 
 
@@ -37,7 +38,7 @@ def order_stacks(stack_definitions):
 
 
 def make_template_body(renderer, template, parent_variables=None):
-    return json.dumps(renderer.render_template(template, parent_variables=parent_variables))
+    return json.dumps(renderer.render_template(template, parent_variables=parent_variables)).replace(r'\\', '\\')
 
 
 def get_cf_value(connection, stack_name, value_name, value_type):
@@ -65,8 +66,6 @@ def build_parameters(connection, parameters):
             remote_param_name = p_def['source'].get('name', p_name)
             value = get_cf_value(connection, p_def['source']['stack'], remote_param_name, p_def['source']['type'])
             cf_params.append((p_name, value))
-        else:
-            cf_params.append((p_name, p_def))
     return cf_params
 
 
@@ -76,14 +75,21 @@ class Forge(object):
         self.connection = connection
         self.watcher = Watcher(connection)
 
-    def forge_stack(self, name, stack, parent_variables=None):
-        if 'parameters' in stack:
-            parameters = build_parameters(self.connection, stack['parameters'])
+    def forge_stack(self, name, stack_def, parent_variables=None):
+        if 'parameters' in stack_def:
+            parameters = build_parameters(self.connection, stack_def['parameters'])
         else:
             parameters = None
-        template_body = make_template_body(self.renderer, stack, parent_variables)
-        self.connection.create_stack(name, template_body=template_body, parameters=parameters)
-        self.watcher.watch(name, ['CREATE_IN_PROGRESS'])
+        template_body = make_template_body(self.renderer, stack_def, parent_variables)
+        try:
+            stack = self.connection.describe_stacks(name)[0]
+        except BotoServerError:
+            stack = None
+        if not stack or stack.stack_status not in ['CREATE_COMPLETE', 'CREATE_IN_PROGRESS']:
+            self.connection.create_stack(name, template_body=template_body, parameters=parameters,
+                                         capabilities=['CAPABILITY_IAM'])
+        if not stack or stack.stack_status in ['CREATE_IN_PROGRESS']:
+            self.watcher.watch(name, ['CREATE_IN_PROGRESS'])
 
     def forge_definition(self, name, definition):
         stacks = order_stacks(definition['stacks'])
@@ -98,10 +104,18 @@ class CloudformationValueNotFound(LookupError):
         self.param_name = param_name
         self.type_ = type_
 
+    def __str__(self):
+        return 'Stack {} did not have parameter {} with type {}'.format(self.stack_name,
+                                                                        self.param_name,
+                                                                        self.type_)
+
 
 class BadCloudformationValueType(ValueError):
     def __init__(self, value_type):
         self.value_type = value_type
+
+    def __str__(self):
+        return 'Value type {} is invalid'.format(self.value_type)
 
 
 class CircularDependencyError(Exception):
