@@ -70,10 +70,10 @@ def build_parameters(connection, parameters):
 
 
 class Forge(object):
-    def __init__(self, connection, renderer):
+    def __init__(self, connection, renderer, log_level='INFO'):
         self.renderer = renderer
         self.connection = connection
-        self.watcher = Watcher(connection)
+        self.watcher = Watcher(connection, log_level)
 
     def forge_stack(self, name, stack_def, parent_variables=None):
         if 'parameters' in stack_def:
@@ -96,6 +96,21 @@ class Forge(object):
         variables = definition.get('variables')
         for name, stack_def in stacks:
             self.forge_stack(name, stack_def, variables)
+
+    def delete_stack(self, name):
+        try:
+            stack = self.connection.describe_stacks(name)[0]
+        except BotoServerError:
+            stack = None
+        if stack and stack.stack_status not in ['DELETE_COMPLETE', 'DELETE_IN_PROGRESS']:
+            self.connection.delete_stack(name)
+        if stack and stack.stack_status not in ['DELETE_COMPLETE']:
+            self.watcher.watch(name, ['DELETE_IN_PROGRESS'])
+
+    def delete_definition(self, name, definition):
+        stacks = order_stacks(definition['stacks'])
+        for name, _ in stacks:
+            self.delete_stack(name)
 
 
 class CloudformationValueNotFound(LookupError):

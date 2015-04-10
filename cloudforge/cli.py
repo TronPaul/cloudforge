@@ -54,6 +54,16 @@ def create(args):
     forge.forge_definition(args.definition_name, definition)
 
 
+def delete(args):
+    definition = load_definition(args.yamlfile, args.definition_name)
+    if args.noop:
+        connection = dry_run_connection(definition)
+    else:
+        connection = connect(definition)
+    forge = Forge(connection, make_renderer(definition))
+    forge.delete_definition(args.definition_name, definition)
+
+
 def cloudforge():
     parser = argparse.ArgumentParser(description='Forge CloudFormation stacks')
     subparsers = parser.add_subparsers()
@@ -69,6 +79,12 @@ def cloudforge():
     create_p.add_argument('yamlfile', help='The file to read the Cloudplate definitions from')
     create_p.add_argument('definition_name', help='The definition name')
     create_p.add_argument('--noop', action='store_true', help='Use a fake connection to simulate a run')
+
+    delete_p = subparsers.add_parser('delete', description='Delete the stack definition from Cloudformation')
+    delete_p.set_defaults(func=delete)
+    delete_p.add_argument('yamlfile', help='The file to read the Cloudplate definitions from')
+    delete_p.add_argument('definition_name', help='The definition name')
+    delete_p.add_argument('--noop', action='store_true', help='Use a fake connection to simulate a run')
 
     args = parser.parse_args()
     rv = args.func(args)

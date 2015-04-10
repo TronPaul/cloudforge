@@ -3,9 +3,6 @@ from boto.exception import BotoServerError
 import time
 
 
-logger = logging.getLogger(__name__)
-
-
 def filter_events_before(last_event, events):
     event_ids = [e.event_id for e in events]
     if last_event.event_id not in event_ids:
@@ -15,7 +12,7 @@ def filter_events_before(last_event, events):
         return events[:pos]
 
 
-def log_event(event):
+def log_event(logger, event):
     logger.info('{} {} {} {} {} {}'.format(
         event.timestamp.isoformat(),
         event.resource_status,
@@ -27,8 +24,10 @@ def log_event(event):
 
 
 class Watcher(object):
-    def __init__(self, connection):
+    def __init__(self, connection, log_level):
         self.connection = connection
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(getattr(logging, log_level.upper()))
 
     def watch(self, stack_name, while_statuses):
         try:
@@ -40,10 +39,10 @@ class Watcher(object):
             else:
                 raise e
         prev_event_count = 5
-        logger.info('Last {} events for {} stack'.format(prev_event_count, stack_name))
+        self.logger.info('Last {} events for {} stack'.format(prev_event_count, stack_name))
         for event in reversed(prev_events[:prev_event_count]):
             log_event(event)
-        logger.info('New events:')
+        self.logger.info('New events:')
         last_event = prev_events[0]
         status = stack.stack_status.encode('utf-8')
         while status in while_statuses:
@@ -57,7 +56,7 @@ class Watcher(object):
             new_events = filter_events_before(last_event, events)
             if new_events:
                 for event in reversed(new_events):
-                    log_event(event)
+                    log_event(self.logger, event)
                 last_event = new_events[0]
             stack.update()
             status = stack.stack_status.encode('utf-8')
