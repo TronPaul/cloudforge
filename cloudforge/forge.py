@@ -108,7 +108,7 @@ class Forge(object):
             self.watcher.watch(name, ['DELETE_IN_PROGRESS'])
 
     def delete_definition(self, name, definition):
-        stacks = order_stacks(definition['stacks'])
+        stacks = reversed(order_stacks(definition['stacks']))
         for name, _ in stacks:
             self.delete_stack(name)
 

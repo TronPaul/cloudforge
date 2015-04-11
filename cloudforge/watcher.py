@@ -28,6 +28,7 @@ class Watcher(object):
         self.connection = connection
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(getattr(logging, log_level.upper()))
+        self.logger.addHandler(logging.StreamHandler())
 
     def watch(self, stack_name, while_statuses):
         try:
@@ -41,7 +42,7 @@ class Watcher(object):
         prev_event_count = 5
         self.logger.info('Last {} events for {} stack'.format(prev_event_count, stack_name))
         for event in reversed(prev_events[:prev_event_count]):
-            log_event(event)
+            log_event(self.logger, event)
         self.logger.info('New events:')
         last_event = prev_events[0]
         status = stack.stack_status.encode('utf-8')
