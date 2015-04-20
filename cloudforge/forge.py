@@ -97,11 +97,12 @@ class StackAlreadyExistsError(Exception):
 
 
 class TemplateValidationError(Exception):
-    def __init__(self, name):
+    def __init__(self, name, error):
         self.name = name
+        self.error = error
 
     def __str__(self):
-        return 'AWS could not validate template {}'.format(self.name)
+        return 'AWS Template validation for {} failed: {}'.format(self.name, self.error.message)
 
 
 class Forge(object):
@@ -118,8 +119,8 @@ class Forge(object):
         template_body = make_template_body(self.renderer, stack_def, parent_variables)
         try:
             self.connection.validate_template(template_body=template_body)
-        except BotoServerError:
-            raise TemplateValidationError(name)
+        except BotoServerError as e:
+            raise TemplateValidationError(name, e)
         try:
             stack = self.connection.describe_stacks(name)[0]
         except BotoServerError:
