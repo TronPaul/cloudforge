@@ -69,6 +69,22 @@ def build_parameters(connection, parameters):
     return cf_params
 
 
+class StackCreationError(Exception):
+    def __init__(self, status):
+        self.status = status
+
+    def __str__(self):
+        return 'Creation failed, got status: {}'.format(self.status)
+
+
+class StackDeletionError(Exception):
+    def __init__(self, status):
+        self.status = status
+
+    def __str__(self):
+        return 'Deletion failed, got status: {}'.format(self.status)
+
+
 class Forge(object):
     def __init__(self, connection, renderer, log_level='INFO'):
         self.renderer = renderer
@@ -89,7 +105,9 @@ class Forge(object):
             self.connection.create_stack(name, template_body=template_body, parameters=parameters,
                                          capabilities=['CAPABILITY_IAM'])
         if not stack or stack.stack_status in ['CREATE_IN_PROGRESS']:
-            self.watcher.watch(name, ['CREATE_IN_PROGRESS'])
+            status = self.watcher.watch(name, ['CREATE_IN_PROGRESS'])
+            if status != 'CREATE_COMPLETE':
+                raise StackCreationError(status)
 
     def forge_definition(self, name, definition):
         stacks = order_stacks(definition['stacks'])
@@ -105,7 +123,9 @@ class Forge(object):
         if stack and stack.stack_status not in ['DELETE_COMPLETE', 'DELETE_IN_PROGRESS']:
             self.connection.delete_stack(name)
         if stack and stack.stack_status not in ['DELETE_COMPLETE']:
-            self.watcher.watch(name, ['DELETE_IN_PROGRESS'])
+            status = self.watcher.watch(name, ['DELETE_IN_PROGRESS'])
+            if status != 'DELETE_COMPLETE':
+                raise StackDeletionError(status)
 
     def delete_definition(self, name, definition):
         stacks = reversed(order_stacks(definition['stacks']))
