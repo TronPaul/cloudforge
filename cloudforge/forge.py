@@ -70,19 +70,30 @@ def build_parameters(connection, parameters):
 
 
 class StackCreationError(Exception):
-    def __init__(self, status):
+    def __init__(self, name, status):
+        self.name = name
         self.status = status
 
     def __str__(self):
-        return 'Creation failed, got status: {}'.format(self.status)
+        return 'Creation of {} failed, got status: {}'.format(self.name, self.status)
 
 
 class StackDeletionError(Exception):
-    def __init__(self, status):
+    def __init__(self, name, status):
+        self.name = name
         self.status = status
 
     def __str__(self):
-        return 'Deletion failed, got status: {}'.format(self.status)
+        return 'Deletion of {} failed, got status: {}'.format(self.name, self.status)
+
+
+class StackAlreadyExistsError(Exception):
+    def __init__(self, name, status):
+        self.name = name
+        self.status = status
+
+    def __str__(self):
+        return 'Could not create {}, it already exists in status {}'.format(self.name, self.status)
 
 
 class Forge(object):
@@ -101,13 +112,15 @@ class Forge(object):
             stack = self.connection.describe_stacks(name)[0]
         except BotoServerError:
             stack = None
-        if not stack or stack.stack_status not in ['CREATE_COMPLETE', 'CREATE_IN_PROGRESS']:
+        if not stack:
             self.connection.create_stack(name, template_body=template_body, parameters=parameters,
                                          capabilities=['CAPABILITY_IAM'])
+        elif stack.stack_status not in ['CREATE_COMPLETE', 'CREATE_IN_PROGRESS']:
+            raise StackAlreadyExistsError(name, stack.stack_status)
         if not stack or stack.stack_status in ['CREATE_IN_PROGRESS']:
             status = self.watcher.watch(name, ['CREATE_IN_PROGRESS'])
             if status != 'CREATE_COMPLETE':
-                raise StackCreationError(status)
+                raise StackCreationError(name, status)
 
     def forge_definition(self, name, definition):
         stacks = order_stacks(definition['stacks'])
@@ -125,7 +138,7 @@ class Forge(object):
         if stack and stack.stack_status not in ['DELETE_COMPLETE']:
             status = self.watcher.watch(name, ['DELETE_IN_PROGRESS'])
             if status != 'DELETE_COMPLETE':
-                raise StackDeletionError(status)
+                raise StackDeletionError(name, status)
 
     def delete_definition(self, name, definition):
         stacks = reversed(order_stacks(definition['stacks']))
