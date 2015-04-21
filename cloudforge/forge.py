@@ -150,7 +150,7 @@ class Forge(object):
             self.connection.delete_stack(name)
         if stack and stack.stack_status not in ['DELETE_COMPLETE']:
             status = self.watcher.watch(name, ['DELETE_IN_PROGRESS'])
-            if status != 'DELETE_COMPLETE':
+            if status not in ['DELETE_COMPLETE', 'STACK_GONE']:
                 raise StackDeletionError(name, status)
 
     def delete_definition(self, name, definition):
