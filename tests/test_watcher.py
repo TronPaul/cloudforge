@@ -1,4 +1,7 @@
+import random
 import unittest
+from boto.exception import BotoServerError
+import datetime
 import mock
 from boto.cloudformation.stack import StackEvent
 from boto.cloudformation.connection import CloudFormationConnection
@@ -12,6 +15,18 @@ def make_events(count):
         e.event_id = i
         events.append(e)
     return list(reversed(events))
+
+
+def make_fake_event():
+    fake_event = mock.MagicMock(spec=StackEvent)
+    fake_event.timestamp = datetime.datetime.now()
+    fake_event.resource_status = None
+    fake_event.resource_type = None
+    fake_event.logical_resource_id = None
+    fake_event.physical_resource_id = None
+    fake_event.event_id = None
+    fake_event.resource_status_reason = None
+    return fake_event
 
 
 class WatcherTest(unittest.TestCase):
@@ -35,9 +50,31 @@ class WatcherTest(unittest.TestCase):
         stack = conn.describe_stacks.return_value.__getitem__.return_value
         stack.stack_status.encode.side_effect = ['CREATE_IN_PROGRESS'] * 3 + ['CREATE_COMPLETE']
         watcher = Watcher(conn)
-        watcher.watch('test', ['CREATE_IN_PROGRESS'])
+        rv = watcher.watch('test', ['CREATE_IN_PROGRESS'])
         self.assertEqual(3, stack.update.call_count)
         self.assertEqual(4, conn.describe_stack_events.call_count)
+        self.assertEqual('CREATE_COMPLETE', rv)
+
+    def test_watch_missing_stack_returns_gone(self):
+        conn = mock.MagicMock(spec=CloudFormationConnection)
+        error = BotoServerError(None, None)
+        error.message = 'Stack:test does not exist'
+        conn.describe_stacks.side_effect = error
+        watcher = Watcher(conn)
+        rv = watcher.watch('test', ['CREATE_IN_PROGRESS'])
+        self.assertEqual('STACK_GONE', rv)
+
+    @mock.patch('cloudforge.watcher.time.sleep')
+    def test_watch_stack_going_missing_returns_gone(self, mock_sleep):
+        conn = mock.MagicMock(spec=CloudFormationConnection)
+        error = BotoServerError(None, None)
+        error.message = 'Stack:test does not exist'
+        stack = conn.describe_stacks.return_value.__getitem__.return_value
+        stack.stack_status.encode.return_value = 'CREATE_IN_PROGRESS'
+        conn.describe_stack_events.side_effect = [[make_fake_event()]] * 3 + [error]
+        watcher = Watcher(conn)
+        rv = watcher.watch('test', ['CREATE_IN_PROGRESS'])
+        self.assertEqual('STACK_GONE', rv)
 
 
 if __name__ == '__main__':
