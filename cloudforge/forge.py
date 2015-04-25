@@ -122,7 +122,7 @@ class Forge(object):
         self.connection = connection
         self.watcher = Watcher(connection, log_level)
 
-    def forge_stack(self, name, stack_def, parent_variables=None):
+    def create_stack(self, name, stack_def, parent_variables=None):
         if 'parameters' in stack_def:
             parameters = build_parameters(self.connection, stack_def['parameters'])
         else:
@@ -146,11 +146,11 @@ class Forge(object):
             if status != 'CREATE_COMPLETE':
                 raise StackCreationError(name, status)
 
-    def forge_definition(self, name, definition):
+    def create_definition(self, name, definition):
         stacks = order_stacks(definition['stacks'])
         variables = definition.get('variables')
         for name, stack_def in stacks:
-            self.forge_stack(name, stack_def, variables)
+            self.create_stack(name, stack_def, variables)
 
     def delete_stack(self, name):
         try:

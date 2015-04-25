@@ -51,7 +51,7 @@ def create(args):
     else:
         connection = connect(definition)
     forge = Forge(connection, make_renderer(definition))
-    forge.forge_definition(args.definition_name, definition)
+    forge.create_definition(args.definition_name, definition)
 
 
 def delete(args):

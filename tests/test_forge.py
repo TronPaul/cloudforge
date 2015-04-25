@@ -46,7 +46,7 @@ def mock_resource_id(mock_conn, value):
 
 
 class ForgeTest(unittest.TestCase):
-    def test_forge_stack(self):
+    def test_create_stack(self):
         conn = mock.MagicMock(spec=CloudFormationConnection)
         conn.describe_stacks.side_effect = BotoServerError(None, None)
         body = json.dumps({'AWSTemplateFormatVersion': '2010-09-09',
@@ -61,13 +61,13 @@ class ForgeTest(unittest.TestCase):
         forge = Forge(conn, r)
         forge.watcher = mock.MagicMock()
         forge.watcher.watch.return_value = 'CREATE_COMPLETE'
-        forge.forge_stack('simple', {'resources': {'simple': None}})
+        forge.create_stack('simple', {'resources': {'simple': None}})
         conn.create_stack.assert_called_once_with('simple',
                                                   template_body=body, parameters=None, capabilities=['CAPABILITY_IAM'])
         conn.describe_stacks.assert_called_once_with('simple')
         self.assertFalse(conn.describe_stack_resources.called)
 
-    def test_forge_stack_with_variables(self):
+    def test_create_stack_with_variables(self):
         conn = mock.MagicMock(spec=CloudFormationConnection)
         conn.describe_stacks.side_effect = BotoServerError(None, None)
         body = {'AWSTemplateFormatVersion': '2010-09-09',
@@ -81,7 +81,7 @@ class ForgeTest(unittest.TestCase):
         forge = Forge(conn, r)
         forge.watcher = mock.MagicMock()
         forge.watcher.watch.return_value = 'CREATE_COMPLETE'
-        forge.forge_stack('vared',
+        forge.create_stack('vared',
                           {'variables': {'role': 'DatRole'},
                            'resources': {'vared': None}})
         args, kwargs = conn.create_stack.call_args
@@ -92,7 +92,7 @@ class ForgeTest(unittest.TestCase):
         conn.describe_stacks.assert_called_once_with('vared')
         self.assertFalse(conn.describe_stack_resources.called)
 
-    def test_forge_stack_with_params(self):
+    def test_create_stack_with_params(self):
         conn = mock.MagicMock(spec=CloudFormationConnection)
         conn.describe_stacks.side_effect = BotoServerError(None, None)
         mock_resource_id(conn, 'vpc-12345')
@@ -118,7 +118,7 @@ class ForgeTest(unittest.TestCase):
         forge = Forge(conn, r)
         forge.watcher = mock.MagicMock()
         forge.watcher.watch.return_value = 'CREATE_COMPLETE'
-        forge.forge_stack('params', {
+        forge.create_stack('params', {
             'parameters': {'VPC': {'source': {'stack': 'vpc', 'type': 'resource'}, 'type': 'String'}},
             'resources': {'typed': None}})
         args, kwargs = conn.create_stack.call_args
@@ -144,7 +144,7 @@ class ForgeTest(unittest.TestCase):
         forge = Forge(conn, r)
         forge.watcher = mock.MagicMock()
         forge.watcher.watch.return_value = 'CREATE_COMPLETE'
-        forge.forge_definition('plain', {'stacks': {
+        forge.create_definition('plain', {'stacks': {
             'plain': {'resources': {'simple': None}}
         }})
         args, kwargs = conn.create_stack.call_args
@@ -170,7 +170,7 @@ class ForgeTest(unittest.TestCase):
         forge = Forge(conn, r)
         forge.watcher = mock.MagicMock()
         forge.watcher.watch.return_value = 'CREATE_COMPLETE'
-        forge.forge_definition('plain', {'stacks': {
+        forge.create_definition('plain', {'stacks': {
             'plain': {'resources': {'simple': None}},
             'plain2': {'resources': {'simple': None}}
         }})
