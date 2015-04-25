@@ -1,11 +1,12 @@
-import random
 import unittest
-from boto.exception import BotoServerError
 import datetime
 import mock
+
+from boto.exception import BotoServerError
 from boto.cloudformation.stack import StackEvent
 from boto.cloudformation.connection import CloudFormationConnection
-from cloudforge.watcher import filter_events_before, log_event, Watcher
+
+from cloudforge.watcher import filter_events_before, Watcher
 
 
 def make_events(count):
