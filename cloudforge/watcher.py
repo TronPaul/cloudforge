@@ -24,7 +24,7 @@ def log_event(logger, event):
 
 
 class Watcher(object):
-    def __init__(self, connection, log_level):
+    def __init__(self, connection, log_level='info'):
         self.connection = connection
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(getattr(logging, log_level.upper()))

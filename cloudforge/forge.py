@@ -59,6 +59,15 @@ def get_cf_value(connection, stack_name, value_name, value_type):
     raise CloudformationValueNotFound(stack_name, value_name, value_type)
 
 
+class InvalidParameterDefinitionError(Exception):
+    def __init__(self, name, defenition):
+        self.name = name
+        self.definition = defenition
+
+    def __str__(self):
+        return 'Bad parameter {} defined as {}'.format(self.name, self.definition)
+
+
 def build_parameters(connection, parameters):
     cf_params = []
     for p_name, p_def in parameters.items():
@@ -66,6 +75,8 @@ def build_parameters(connection, parameters):
             remote_param_name = p_def['source'].get('name', p_name)
             value = get_cf_value(connection, p_def['source']['stack'], remote_param_name, p_def['source']['type'])
             cf_params.append((p_name, value))
+        else:
+            raise InvalidParameterDefinitionError(p_name, p_def)
     return cf_params
 
 

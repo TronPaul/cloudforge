@@ -7,14 +7,6 @@ KeyValue = namedtuple('KeyValue', ['key', 'value'])
 
 
 class MyTestCase(unittest.TestCase):
-    def test_local_parameters(self):
-        params = {
-            'thing': '1',
-            'otherThing': 2
-        }
-        self.assertEqual([('thing', '1',), ('otherThing', 2)],
-                         build_parameters(mock.MagicMock(), params))
-
     def test_remote_resource_parameters(self):
         params = {
             'thing': {
